@@ -9,6 +9,7 @@ interface SubmitRequest {
     classNumber: string
   }
   answers: QuizAnswer[]
+  questions: Question[]
   startTime: number
   endTime: number
   timeExpired?: boolean
@@ -47,14 +48,14 @@ export default function handler(
   }
 
   try {
-    const { userInfo, answers, startTime, endTime, timeExpired = false }: SubmitRequest = req.body
+    const { userInfo, answers, questions, startTime, endTime, timeExpired = false }: SubmitRequest = req.body
 
     // Validate required fields
-    if (!userInfo || !answers || !startTime || !endTime) {
+    if (!userInfo || !answers || !questions || !startTime || !endTime) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields',
-        error: 'userInfo, answers, startTime, and endTime are required'
+        error: 'userInfo, answers, questions, startTime, and endTime are required'
       })
     }
 
@@ -79,9 +80,7 @@ export default function handler(
       })
     }
 
-    // Get questions from storage
-    const questions = storage.getQuestions()
-
+    // Validate questions
     if (questions.length === 0) {
       return res.status(404).json({
         success: false,

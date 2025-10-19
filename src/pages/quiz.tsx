@@ -6,7 +6,7 @@ import Layout from "@/components/layout/Layout";
 import UserInfoForm from "@/components/quiz/UserInfoForm";
 import QuestionDisplay from "@/components/quiz/QuestionDisplay";
 import QuizTimer from "@/components/quiz/QuizTimer";
-import EnhancedQuizTimer from "@/components/quiz/EnhancedQuizTimer";
+// import EnhancedQuizTimer from "@/components/quiz/EnhancedQuizTimer";
 import QuizResults from "@/components/quiz/QuizResults";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
@@ -57,6 +57,7 @@ const QuizPage: NextPage = () => {
   const [quizResult, setQuizResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(new Map());
 
   // Check for existing session on mount
   useEffect(() => {
@@ -72,6 +73,14 @@ const QuizPage: NextPage = () => {
     }
 
     setQuestions(savedQuestions);
+
+    // Load existing answers into state for faster access
+    const userAnswers = storage.getUserAnswers();
+    const answersMap = new Map<string, string>();
+    userAnswers.forEach((answer) => {
+      answersMap.set(answer.questionId, answer.answerId);
+    });
+    setSelectedAnswers(answersMap);
 
     if (
       existingSession &&
@@ -95,29 +104,35 @@ const QuizPage: NextPage = () => {
     setIsLoading(false);
   }, []);
 
-  // Get current selected answer from localStorage
+  // Get current selected answer from local state (much faster than localStorage)
   const getCurrentSelectedAnswer = useCallback((): string | null => {
     if (questions.length === 0 || currentQuestionIndex >= questions.length)
       return null;
     const currentQuestion = questions[currentQuestionIndex];
-    const userAnswers = storage.getUserAnswers();
-    const answer = userAnswers.find((a) => a.questionId === currentQuestion.id);
-    return answer?.answerId || null;
-  }, [questions, currentQuestionIndex]);
+    return selectedAnswers.get(currentQuestion.id) || null;
+  }, [questions, currentQuestionIndex, selectedAnswers]);
 
-  // Handle answer selection
+  // Optimized answer selection with immediate local state update
   const handleAnswerSelect = useCallback(
     (answerId: string) => {
       if (questions.length === 0 || currentQuestionIndex >= questions.length)
         return;
 
       const currentQuestion = questions[currentQuestionIndex];
+
+      // Update local state immediately for instant UI feedback
+      setSelectedAnswers(prev => new Map(prev).set(currentQuestion.id, answerId));
+
+      // Prepare answer for localStorage
       const answer: QuizAnswer = {
         questionId: currentQuestion.id,
         answerId,
       };
 
-      storage.saveUserAnswer(answer);
+      // Save to localStorage asynchronously (non-blocking)
+      setTimeout(() => {
+        storage.saveUserAnswer(answer);
+      }, 0);
     },
     [questions, currentQuestionIndex]
   );
@@ -171,6 +186,7 @@ const QuizPage: NextPage = () => {
       const submissionData = {
         userInfo,
         answers: userAnswers,
+        questions: questions, // Include questions for grading
         startTime: session.startTime,
         endTime: Date.now(),
         timeExpired: isTimerExpired,
@@ -206,18 +222,18 @@ const QuizPage: NextPage = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [userInfo, isTimerExpired]);
+  }, [userInfo, isTimerExpired, questions]);
 
   // Handle timer expiration
-  const handleTimeExpire = useCallback(() => {
-    setIsTimerExpired(true);
-    handleFinishQuiz();
-  }, [handleFinishQuiz]);
+  // const handleTimeExpire = useCallback(() => {
+  //   setIsTimerExpired(true);
+  //   handleFinishQuiz();
+  // }, [handleFinishQuiz]);
 
   // Handle timer tick
-  const handleTimerTick = useCallback((remainingTime: number) => {
-    setTimeRemaining(remainingTime);
-  }, []);
+  // const handleTimerTick = useCallback((remainingTime: number) => {
+  //   setTimeRemaining(remainingTime);
+  // }, []);
 
   const handleUserInfoSubmit = (submittedUserInfo: UserInfo) => {
     const startTime = Date.now();
@@ -243,6 +259,7 @@ const QuizPage: NextPage = () => {
     setQuizResult(null);
     setSessionStartTime(null);
     setError(null);
+    setSelectedAnswers(new Map()); // Clear local answers state
 
     // Reset to info step
     setCurrentStep("info");
@@ -438,7 +455,7 @@ const QuizPage: NextPage = () => {
                                   id="submitting-description"
                                   className="text-sm text-gray-600 dark:text-gray-400"
                                 >
-                                  Please don't close this window
+                                  Please don&apos;t close this window
                                 </p>
                               </CardContent>
                             </Card>

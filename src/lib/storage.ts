@@ -36,6 +36,11 @@ export const STORAGE_KEYS = {
   USER_ANSWERS: 'fmib_user_answers'
 } as const
 
+// In-memory cache for user answers
+let userAnswersCache: QuizAnswer[] | null = null
+let answersCacheTimestamp = 0
+const CACHE_DURATION = 100 // 100ms cache duration
+
 // Local storage utility functions
 export const storage = {
   // Quiz session management
@@ -57,23 +62,43 @@ export const storage = {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.QUIZ_SESSION)
       localStorage.removeItem(STORAGE_KEYS.USER_ANSWERS)
+      // Clear cache
+      userAnswersCache = null
+      answersCacheTimestamp = 0
     }
   },
 
-  // User answers management
+  // User answers management with caching
   saveUserAnswer: (answer: QuizAnswer): void => {
     if (typeof window !== 'undefined') {
-      const existingAnswers = storage.getUserAnswers()
-      const updatedAnswers = existingAnswers.filter(a => a.questionId !== answer.questionId)
+      // Update cache immediately
+      if (!userAnswersCache) {
+        userAnswersCache = storage.getUserAnswers()
+      }
+      const updatedAnswers = userAnswersCache.filter(a => a.questionId !== answer.questionId)
       updatedAnswers.push(answer)
+      userAnswersCache = updatedAnswers
+      answersCacheTimestamp = Date.now()
+
+      // Save to localStorage asynchronously
       localStorage.setItem(STORAGE_KEYS.USER_ANSWERS, JSON.stringify(updatedAnswers))
     }
   },
 
   getUserAnswers: (): QuizAnswer[] => {
     if (typeof window !== 'undefined') {
+      const now = Date.now()
+
+      // Return cached data if still valid
+      if (userAnswersCache && (now - answersCacheTimestamp) < CACHE_DURATION) {
+        return userAnswersCache
+      }
+
+      // Load from localStorage and update cache
       const answersData = localStorage.getItem(STORAGE_KEYS.USER_ANSWERS)
-      return answersData ? JSON.parse(answersData) : []
+      userAnswersCache = answersData ? JSON.parse(answersData) : []
+      answersCacheTimestamp = now
+      return userAnswersCache
     }
     return []
   },
@@ -81,6 +106,9 @@ export const storage = {
   clearUserAnswers: (): void => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.USER_ANSWERS)
+      // Clear cache
+      userAnswersCache = null
+      answersCacheTimestamp = 0
     }
   },
 

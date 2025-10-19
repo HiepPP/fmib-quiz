@@ -28,6 +28,7 @@ interface QuestionsResponse {
 interface SubmitRequest {
   userInfo: UserInfo
   answers: QuizAnswer[]
+  questions: Question[]
   startTime: number
   endTime: number
   timeExpired?: boolean

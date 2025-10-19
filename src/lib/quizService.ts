@@ -4,6 +4,7 @@ import { Question, QuizAnswer, QuizResult, UserInfo } from '@/types/quiz'
 export interface QuizSubmission {
   userInfo: UserInfo
   answers: QuizAnswer[]
+  questions: Question[]
   startTime: number
   endTime: number
   timeExpired?: boolean
@@ -89,12 +90,55 @@ class QuizService {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      // Mock result calculation
-      const totalQuestions = submission.answers.length
-      const correctAnswers = Math.floor(Math.random() * totalQuestions) // Random for demo
+      // Use actual questions for grading if available
+      let totalQuestions = submission.answers.length
+      let correctAnswers = 0
+      const answers = []
+
+      if (submission.questions && submission.questions.length > 0) {
+        totalQuestions = submission.questions.length
+
+        for (const question of submission.questions) {
+          const userAnswer = submission.answers.find(a => a.questionId === question.id)
+          const correctAnswerIds = question.answers.filter(a => a.isCorrect).map(a => a.id)
+
+          let selectedAnswerText = 'Not answered'
+          let isCorrect = false
+
+          if (userAnswer) {
+            const selectedAnswerObj = question.answers.find(a => a.id === userAnswer.answerId)
+            selectedAnswerText = selectedAnswerObj?.text || 'Invalid answer'
+            isCorrect = correctAnswerIds.includes(userAnswer.answerId)
+          }
+
+          if (isCorrect) correctAnswers++
+
+          answers.push({
+            questionId: question.id,
+            question: question.question,
+            selectedAnswer: selectedAnswerText,
+            correctAnswer: question.answers.filter(a => a.isCorrect).map(a => a.text).join(', '),
+            isCorrect
+          })
+        }
+      } else {
+        // Fallback to random calculation if no questions provided
+        correctAnswers = Math.floor(Math.random() * totalQuestions)
+
+        for (let i = 0; i < totalQuestions; i++) {
+          const isCorrect = i < correctAnswers
+          answers.push({
+            questionId: submission.answers[i]?.questionId || `q${i}`,
+            question: `Question ${i + 1}`,
+            selectedAnswer: 'Selected answer',
+            correctAnswer: 'Correct answer',
+            isCorrect
+          })
+        }
+      }
+
       const score = correctAnswers
       const percentage = Math.round((correctAnswers / totalQuestions) * 100)
-
       const timeSpent = Math.round((submission.endTime - submission.startTime) / 1000)
 
       const mockResult: QuizResult = {
@@ -102,13 +146,7 @@ class QuizService {
         totalQuestions,
         correctAnswers,
         timeSpent,
-        answers: submission.answers.map((answer, index) => ({
-          questionId: answer.questionId,
-          question: `Question ${index + 1}`,
-          selectedAnswer: 'Selected answer',
-          correctAnswer: 'Correct answer',
-          isCorrect: Math.random() > 0.5 // Random for demo
-        }))
+        answers
       }
 
       const mockSummary = {

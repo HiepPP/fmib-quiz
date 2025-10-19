@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Question } from "@/types/quiz";
 import { storage } from "@/lib/storage";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -21,7 +21,7 @@ interface QuestionDisplayProps {
   timeRemaining: number;
 }
 
-export default function QuestionDisplay({
+const QuestionDisplay = memo(function QuestionDisplay({
   question,
   questions,
   questionNumber,
@@ -340,4 +340,6 @@ export default function QuestionDisplay({
       )} */}
     </div>
   );
-}
+});
+
+export default QuestionDisplay;
