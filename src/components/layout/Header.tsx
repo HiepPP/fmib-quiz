@@ -1,39 +1,43 @@
-import Link from 'next/link'
-import { useRouter } from 'next/router'
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 interface HeaderProps {
-  title?: string
+  title?: string;
 }
 
-export default function Header({ title = 'FMIB Quiz' }: HeaderProps) {
-  const router = useRouter()
-  const pathname = router.pathname
+export default function Header({ title = "FMIB Quiz" }: HeaderProps) {
+  const router = useRouter();
+  const pathname = router.pathname;
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <header className="bg-blue-600 dark:bg-blue-800 shadow-sm border-b border-blue-700 dark:border-blue-900">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
-            {title}
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <Link href="/" className="flex items-center flex-1 justify-center md:justify-start">
+            <img
+              src="/fmib-banner.png"
+              alt="FMIB Quiz"
+              className="h-10 w-auto object-contain md:h-12 lg:h-14 max-w-full"
+            />
           </Link>
 
-          <nav className="flex space-x-6">
+          <nav className="hidden md:flex space-x-6">
             <Link
               href="/quiz"
-              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                pathname === '/quiz'
-                  ? 'text-blue-600'
-                  : 'text-gray-600 dark:text-gray-400'
+              className={`text-sm font-medium transition-colors hover:text-white ${
+                pathname === "/quiz"
+                  ? "text-white"
+                  : "text-blue-100 dark:text-blue-200"
               }`}
             >
               Take Quiz
             </Link>
             <Link
               href="/admin"
-              className={`text-sm font-medium transition-colors hover:text-blue-600 ${
-                pathname === '/admin'
-                  ? 'text-blue-600'
-                  : 'text-gray-600 dark:text-gray-400'
+              className={`text-sm font-medium transition-colors hover:text-white ${
+                pathname === "/admin"
+                  ? "text-white"
+                  : "text-blue-100 dark:text-blue-200"
               }`}
             >
               Admin
@@ -42,5 +46,5 @@ export default function Header({ title = 'FMIB Quiz' }: HeaderProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }
