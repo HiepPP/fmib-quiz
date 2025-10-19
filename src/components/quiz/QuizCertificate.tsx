@@ -391,7 +391,6 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
               id="certName"
             >
               {userName}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 sm:w-32 h-0.5 bg-[#003366]"></div>
             </div>
             <div className="flex flex-wrap justify-center gap-6 sm:gap-8 mb-6 sm:mb-8 max-w-2xl mx-auto">
               <div className="text-center text-base sm:text-xl flex-shrink-0">
@@ -430,7 +429,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
 
           {/* Certificate Footer */}
           <div className="px-4 sm:px-8 py-4 sm:py-6 bg-white">
-            <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6">
+            <div className="flex flex-row justify-between gap-4 sm:gap-6">
               <div className="flex-1 text-center">
                 <div className="text-sm sm:text-xl text-[#333333] mb-1 font-semibold">
                   Lãnh đạo Khoa Marketing - Kinh doanh quốc tế
