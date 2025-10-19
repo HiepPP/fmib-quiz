@@ -25,7 +25,6 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
   score,
   totalQuestions,
   percentage,
-  timeSpent,
   completedAt,
   onRestart,
   onGoHome,
@@ -48,37 +47,64 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
     setIsDownloading(true);
 
     try {
+      // Pre-load and convert logo image to data URL
+      const logoImg = element.querySelector(
+        'img[alt="FMIB Banner"]'
+      ) as HTMLImageElement;
+      let logoDataUrl = "";
+
+      if (logoImg && logoImg.complete) {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = logoImg.naturalWidth || 400;
+          canvas.height = logoImg.naturalHeight || 120;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(logoImg, 0, 0);
+            logoDataUrl = canvas.toDataURL("image/png");
+          }
+        } catch {
+          console.log("Could not convert logo to data URL, will use fallback");
+        }
+      }
+
+      // Wait a bit to ensure all styles are applied
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Create a canvas from the certificate element with improved configuration
       const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution for better quality
+        scale: 3, // Higher resolution for better quality
         useCORS: true, // Allow cross-origin images
         allowTaint: true, // Allow tainted canvas for external images
         backgroundColor: "#ffffff",
         logging: false,
-        width: 800, // Fixed width for consistency
-        height: element.scrollHeight * (800 / element.scrollWidth), // Maintain aspect ratio
+        width: element.offsetWidth, // Use actual width
+        height: element.offsetHeight, // Use actual height
         scrollX: 0,
-        scrollY: 0,
-        foreignObjectRendering: true, // Better for complex styling
-        imageTimeout: 15000, // Wait longer for images to load
+        scrollY: -window.scrollY,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        foreignObjectRendering: false, // Disable for better compatibility
+        imageTimeout: 0, // No timeout
         removeContainer: false,
-        onclone: (clonedDoc, element) => {
+        onclone: (clonedDoc) => {
           // Apply all styles explicitly to the cloned document
           const clonedElement = clonedDoc.getElementById(
             "certificateContainer"
           );
           if (clonedElement) {
             // Set explicit styles
-            clonedElement.style.width = "800px";
-            clonedElement.style.minWidth = "800px";
-            clonedElement.style.maxWidth = "800px";
-            clonedElement.style.margin = "0 auto";
+            clonedElement.style.width = element.offsetWidth + "px";
+            clonedElement.style.minWidth = element.offsetWidth + "px";
+            clonedElement.style.maxWidth = element.offsetWidth + "px";
+            clonedElement.style.margin = "0";
             clonedElement.style.backgroundColor = "#ffffff";
             clonedElement.style.border = "12px solid #002b5c";
             clonedElement.style.fontFamily = "'Times New Roman', Times, serif";
-            clonedElement.style.overflow = "hidden";
+            clonedElement.style.overflow = "visible";
             clonedElement.style.display = "block";
             clonedElement.style.boxShadow = "none";
+            clonedElement.style.padding = "0";
           }
 
           // Force Times New Roman font on all elements
@@ -93,108 +119,110 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
           // Ensure all CSS variables are applied as actual values
           const style = clonedDoc.createElement("style");
           style.textContent = `
-            #certificateContainer, #certificateContainer * {
+            * {
               font-family: 'Times New Roman', Times, serif !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
             #certificateContainer {
-              --dark-blue: #002b5c;
-              --medium-blue: #003366;
+              background-color: #ffffff !important;
+              border: 12px solid #002b5c !important;
             }
-            #certificateContainer div[style*="color: var(--dark-blue)"] {
+            [style*="color: var(--dark-blue)"] {
               color: #002b5c !important;
             }
-            #certificateContainer div[style*="color: var(--medium-blue)"] {
+            [style*="color: var(--medium-blue)"] {
               color: #003366 !important;
             }
-            #certificateContainer .text-[#003366] {
+            .text-\\[\\#003366\\] {
               color: #003366 !important;
             }
-            #certificateContainer .text-[#dc3545] {
+            .text-\\[\\#dc3545\\] {
               color: #dc3545 !important;
             }
-            #certificateContainer .text-[#333333] {
+            .text-\\[\\#333333\\] {
               color: #333333 !important;
             }
-            #certificateContainer .bg-white {
+            .bg-white {
               background-color: #ffffff !important;
             }
-            #certificateContainer .border-[#002b5c] {
+            .border-\\[\\#002b5c\\] {
               border-color: #002b5c !important;
             }
-            #certificateContainer .text-xl, #certificateContainer .text-2xl, #certificateContainer .text-4xl {
+            .text-xl, .text-2xl, .text-4xl {
               font-family: 'Times New Roman', Times, serif !important;
               font-weight: bold !important;
             }
-            #certificateContainer .flex-wrap {
-              flex-wrap: wrap !important;
-            }
-            #certificateContainer .break-words {
-              word-wrap: break-word !important;
-              word-break: break-word !important;
-            }
-            #certificateContainer .max-w-2xl {
-              max-width: 672px !important;
-            }
-            #certificateContainer img {
+            img {
               display: block !important;
               margin: 0 auto !important;
             }
-            #certificateContainer .text-center {
+            .text-center {
               text-align: center !important;
             }
-            #certificateContainer .mx-auto {
+            .mx-auto {
               margin-left: auto !important;
               margin-right: auto !important;
+            }
+            .print\\:hidden {
+              display: none !important;
             }
           `;
           clonedDoc.head.appendChild(style);
 
-          // Handle images - convert external images to data URLs if possible
+          // Handle images - use pre-loaded data URL or create fallback
           const images = clonedElement?.querySelectorAll("img");
           if (images) {
-            images.forEach(async (img) => {
-              // Create a high-quality FMIB logo as fallback or replacement
-              const createLogoCanvas = () => {
+            images.forEach((img) => {
+              const htmlImg = img as HTMLImageElement;
+
+              // If we have the pre-loaded data URL, use it
+              if (logoDataUrl) {
+                htmlImg.src = logoDataUrl;
+              } else {
+                // Create a high-quality FMIB logo as fallback
                 const logoCanvas = clonedDoc.createElement("canvas");
                 const logoCtx = logoCanvas.getContext("2d");
                 if (logoCtx) {
                   // Set canvas size for high DPI
-                  logoCanvas.width = 400;
-                  logoCanvas.height = 120;
+                  logoCanvas.width = 600;
+                  logoCanvas.height = 180;
 
-                  // Clear canvas
+                  // Clear canvas with white background
                   logoCtx.fillStyle = "#ffffff";
-                  logoCtx.fillRect(0, 0, 400, 120);
+                  logoCtx.fillRect(0, 0, 600, 180);
 
                   // Draw FMIB text with professional styling
                   logoCtx.fillStyle = "#002b5c";
-                  logoCtx.font = "bold 56px Times New Roman";
+                  logoCtx.font = "bold 72px 'Times New Roman', Times, serif";
                   logoCtx.textAlign = "center";
                   logoCtx.textBaseline = "middle";
-                  logoCtx.fillText("FMIB", 200, 60);
+                  logoCtx.fillText("FMIB", 300, 70);
 
                   // Add club text
-                  logoCtx.font = "24px Times New Roman";
+                  logoCtx.font = "28px 'Times New Roman', Times, serif";
                   logoCtx.fillStyle = "#003366";
                   logoCtx.fillText(
                     "Future Marketer International Businessman",
-                    200,
-                    95
+                    300,
+                    130
                   );
                 }
-                return logoCanvas.toDataURL("image/png");
-              };
+                htmlImg.src = logoCanvas.toDataURL("image/png");
+              }
 
-              // Always use the high-quality canvas logo for consistency
-              const logoDataUrl = createLogoCanvas();
-              img.src = logoDataUrl;
-              img.style.width = "200px";
-              img.style.height = "60px";
-              img.style.display = "block";
-              img.style.margin = "0 auto";
-              img.crossOrigin = "anonymous";
+              htmlImg.style.display = "block";
+              htmlImg.style.margin = "0 auto";
+              htmlImg.style.maxWidth = "100%";
+              htmlImg.style.height = "auto";
+              htmlImg.crossOrigin = "anonymous";
             });
           }
+
+          // Remove any print:hidden elements
+          const hiddenElements =
+            clonedElement?.querySelectorAll(".print\\:hidden");
+          hiddenElements?.forEach((el) => el.remove());
         },
       });
 
@@ -296,10 +324,12 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
           {/* Certificate Header with Logos */}
           <div className="bg-white p-4 sm:p-6 text-center">
             <div className="flex justify-center items-center gap-4 sm:gap-6 mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/fmib-banner.png"
                 alt="FMIB Banner"
                 className="h-12 sm:h-16 w-auto"
+                crossOrigin="anonymous"
                 onLoad={(e) => {
                   // Preload the image to ensure it's available for export
                   const img = e.target as HTMLImageElement;
