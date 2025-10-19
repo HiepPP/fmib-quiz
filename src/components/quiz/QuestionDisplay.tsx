@@ -1,24 +1,24 @@
-import { useState, useEffect } from 'react'
-import { Question } from '@/types/quiz'
-import { storage } from '@/lib/storage'
-import { Card, CardContent, CardHeader } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Alert } from '@/components/ui/Alert'
-import { Progress } from '@/components/ui/Progress'
+import { useState, useEffect } from "react";
+import { Question } from "@/types/quiz";
+import { storage } from "@/lib/storage";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
+import { Progress } from "@/components/ui/Progress";
 
 interface QuestionDisplayProps {
-  question: Question
-  questions: Question[]
-  questionNumber: number
-  totalQuestions: number
-  selectedAnswer: string | null
-  onAnswerSelect: (answerId: string) => void
-  onNext: () => void
-  onPrevious: () => void
-  canGoNext: boolean
-  canGoPrevious: boolean
-  isLastQuestion: boolean
-  timeRemaining: number
+  question: Question;
+  questions: Question[];
+  questionNumber: number;
+  totalQuestions: number;
+  selectedAnswer: string | null;
+  onAnswerSelect: (answerId: string) => void;
+  onNext: () => void;
+  onPrevious: () => void;
+  canGoNext: boolean;
+  canGoPrevious: boolean;
+  isLastQuestion: boolean;
+  timeRemaining: number;
 }
 
 export default function QuestionDisplay({
@@ -33,49 +33,62 @@ export default function QuestionDisplay({
   canGoNext,
   canGoPrevious,
   isLastQuestion,
-  timeRemaining
+  timeRemaining,
 }: QuestionDisplayProps) {
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null);
 
   // Clear error when answer is selected
   useEffect(() => {
     if (selectedAnswer) {
-      setError(null)
+      setError(null);
     }
-  }, [selectedAnswer])
+  }, [selectedAnswer]);
 
   const handleNext = () => {
     if (!selectedAnswer) {
-      setError('Please select an answer before continuing')
-      return
+      setError("Please select an answer before continuing");
+      return;
     }
-    onNext()
-  }
+    onNext();
+  };
 
   const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
 
   const getTimeColor = (): string => {
-    if (timeRemaining <= 60) return 'text-red-600 dark:text-red-400'
-    if (timeRemaining <= 180) return 'text-yellow-600 dark:text-yellow-400'
-    return 'text-green-600 dark:text-green-400'
-  }
+    if (timeRemaining <= 60) return "text-red-600 dark:text-red-400";
+    if (timeRemaining <= 180) return "text-yellow-600 dark:text-yellow-400";
+    return "text-green-600 dark:text-green-400";
+  };
 
   return (
     <div className="max-w-4xl mx-auto w-full space-y-4 sm:space-y-6">
       {/* Timer and Progress */}
       <div className="space-y-4">
         {/* Timer */}
-        <div className={`flex items-center justify-center ${getTimeColor()}`}
-             role="timer"
-             aria-live="polite"
-             aria-label={`Time remaining: ${formatTime(timeRemaining)}`}>
+        <div
+          className={`flex items-center justify-center ${getTimeColor()}`}
+          role="timer"
+          aria-live="polite"
+          aria-label={`Time remaining: ${formatTime(timeRemaining)}`}
+        >
           <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 px-3 sm:px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-4 h-4 sm:w-5 sm:h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span className="font-mono font-semibold text-base sm:text-lg">
               {formatTime(timeRemaining)}
@@ -125,20 +138,19 @@ export default function QuestionDisplay({
           </div>
         </CardHeader>
         <CardContent>
-
           {/* Answer Options */}
           <div className="space-y-3 mb-6 sm:mb-8">
             {question.answers.map((answer, index) => {
-              const isSelected = selectedAnswer === answer.id
-              const letter = String.fromCharCode(65 + index) // A, B, C, D
+              const isSelected = selectedAnswer === answer.id;
+              const letter = String.fromCharCode(65 + index); // A, B, C, D
 
               return (
                 <div
                   key={answer.id}
                   className={`relative cursor-pointer transition-all duration-200 rounded-lg ${
                     isSelected
-                      ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800'
-                      : 'hover:ring-1 hover:ring-gray-300 hover:ring-offset-2 dark:hover:ring-gray-600 dark:hover:ring-offset-gray-800'
+                      ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800"
+                      : "hover:ring-1 hover:ring-gray-300 hover:ring-offset-2 dark:hover:ring-gray-600 dark:hover:ring-offset-gray-800"
                   }`}
                 >
                   <label className="block cursor-pointer">
@@ -155,16 +167,18 @@ export default function QuestionDisplay({
                     <div
                       className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500'
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500"
                       }`}
                     >
                       <div className="flex items-center space-x-3 sm:space-x-4">
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          isSelected
-                            ? 'border-blue-500 bg-blue-500 text-white'
-                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                        }`}>
+                        <div
+                          className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? "border-blue-500 bg-blue-500 text-white"
+                              : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
                           <span className="text-sm font-medium">{letter}</span>
                         </div>
                         <div className="flex-1 min-w-0">
@@ -172,8 +186,8 @@ export default function QuestionDisplay({
                             id={`answer-${answer.id}`}
                             className={`text-sm sm:text-base leading-relaxed break-words ${
                               isSelected
-                                ? 'text-gray-900 dark:text-white font-medium'
-                                : 'text-gray-700 dark:text-gray-300'
+                                ? "text-gray-900 dark:text-white font-medium"
+                                : "text-gray-700 dark:text-gray-300"
                             }`}
                           >
                             {answer.text}
@@ -181,8 +195,18 @@ export default function QuestionDisplay({
                         </div>
                         {isSelected && (
                           <div className="flex-shrink-0">
-                            <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            <svg
+                              className="w-6 h-6 text-blue-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
                             </svg>
                           </div>
                         )}
@@ -190,16 +214,14 @@ export default function QuestionDisplay({
                     </div>
                   </label>
                 </div>
-              )
+              );
             })}
           </div>
 
           {/* Error Message */}
           {error && (
             <div className="mb-6">
-              <Alert variant="error">
-                {error}
-              </Alert>
+              <Alert variant="error">{error}</Alert>
             </div>
           )}
 
@@ -213,15 +235,40 @@ export default function QuestionDisplay({
               className="order-2 sm:order-1"
               aria-label="Go to previous question"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               Previous
             </Button>
 
-            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 order-1 sm:order-2" role="note">
-              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div
+              className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 order-1 sm:order-2"
+              role="note"
+            >
+              <svg
+                className="w-3 h-3 sm:w-4 sm:h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <span>Answer required to continue</span>
             </div>
@@ -232,11 +279,24 @@ export default function QuestionDisplay({
               variant={isLastQuestion ? "success" : "primary"}
               size="lg"
               className="order-3"
-              aria-label={isLastQuestion ? "Finish quiz" : "Go to next question"}
+              aria-label={
+                isLastQuestion ? "Finish quiz" : "Go to next question"
+              }
             >
-              {isLastQuestion ? 'Finish Quiz' : 'Next'}
-              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isLastQuestion ? "M5 13l4 4L19 7" : "M9 5l7 7-7 7"} />
+              {isLastQuestion ? "Finish Quiz" : "Next"}
+              <svg
+                className="w-4 h-4 ml-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={isLastQuestion ? "M5 13l4 4L19 7" : "M9 5l7 7-7 7"}
+                />
               </svg>
             </Button>
           </div>
@@ -244,7 +304,7 @@ export default function QuestionDisplay({
       </Card>
 
       {/* Question Navigation (Quick Jump) */}
-      {totalQuestions > 1 && (
+      {/* {totalQuestions > 1 && (
         <Card variant="outline">
           <CardContent className="p-3 sm:p-4">
             <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Quick Navigation:</p>
@@ -277,7 +337,7 @@ export default function QuestionDisplay({
           </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
     </div>
-  )
+  );
 }
