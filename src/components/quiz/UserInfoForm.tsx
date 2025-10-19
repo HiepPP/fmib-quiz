@@ -340,7 +340,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
             </div>
           </form>
 
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          {/* <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-start space-x-3">
               <svg
                 className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5"
@@ -365,7 +365,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                 </ul>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
