@@ -125,55 +125,77 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
   };
 
   return (
-    <div className="max-w-md mx-auto w-full">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-        <div className="p-6">
-          <div className="mb-6 text-center">
-            <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4">
-              <svg
-                className="w-8 h-8 text-blue-600 dark:text-blue-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700">
+      <div className="absolute inset-0 bg-white/40 dark:bg-black/20"></div>
+      <div className="relative max-w-md mx-auto w-full">
+        <div className="backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 rounded-2xl shadow-xl border border-white/30 dark:border-gray-700/50 p-8">
+          <div className="mb-8 text-center">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 rounded-full blur-md opacity-50"></div>
+              <div className="relative mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg transform transition-transform hover:scale-105">
+                <svg
+                  className="w-10 h-10 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-4">
               Chuyện Nghề Gen Z
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Chào mừng bạn đến với bài kiểm tra kiến thức về thế hệ Gen Z và kỹ
-              năng cần thiết trong thời đại số. Bạn sẽ có 10 phút để hoàn thành
-              20 câu hỏi trắc nghiệm. Hãy chuẩn bị sẵn sàng và điền thông tin
-              của bạn bên dưới để bắt đầu!
-            </p>
+            <div className="max-w-xs mx-auto">
+              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                Chào mừng bạn đến với bài kiểm tra kiến thức về thế hệ Gen Z và kỹ năng cần thiết trong thời đại số.
+              </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">
+                  10 phút
+                </span>
+                <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium rounded-full">
+                  20 câu hỏi
+                </span>
+                <span className="px-3 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs font-medium rounded-full">
+                  Trắc nghiệm
+                </span>
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center"
               >
-                Họ và tên <span className="text-red-500">*</span>
+                <svg className="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Họ và tên <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
                 <input
                   type="text"
                   id="name"
                   name="name"
                   autoComplete="name"
                   required
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors ${
+                  className={`w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-gray-800/50 border backdrop-blur-sm rounded-xl shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:text-white transition-all duration-200 ${
                     errors.name
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
+                      ? "border-red-500 focus:ring-red-500 bg-red-50/50 dark:bg-red-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                   }`}
                   value={formData.name}
                   onChange={handleInputChange("name")}
@@ -182,31 +204,42 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                   disabled={isSubmitting}
                 />
                 {errors.name && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     {errors.name}
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <label
                 htmlFor="classNumber"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center"
               >
-                Lớp <span className="text-red-500">*</span>
+                <svg className="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                Lớp <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
                 <input
                   type="text"
                   id="classNumber"
                   name="classNumber"
                   autoComplete="off"
                   required
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors ${
+                  className={`w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-gray-800/50 border backdrop-blur-sm rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white transition-all duration-200 ${
                     errors.classNumber
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
+                      ? "border-red-500 focus:ring-red-500 bg-red-50/50 dark:bg-red-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                   }`}
                   value={formData.classNumber}
                   onChange={handleInputChange("classNumber")}
@@ -215,31 +248,42 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                   disabled={isSubmitting}
                 />
                 {errors.classNumber && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     {errors.classNumber}
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <label
                 htmlFor="studentNumber"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center"
               >
-                Mã Số Sinh Viên <span className="text-red-500">*</span>
+                <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-4 0a2 2 0 104 0" />
+                </svg>
+                Mã Số Sinh Viên <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-4 0a2 2 0 104 0" />
+                  </svg>
+                </div>
                 <input
                   type="text"
                   id="studentNumber"
                   name="studentNumber"
                   autoComplete="off"
                   required
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors ${
+                  className={`w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-gray-800/50 border backdrop-blur-sm rounded-xl shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent dark:text-white transition-all duration-200 ${
                     errors.studentNumber
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
+                      ? "border-red-500 focus:ring-red-500 bg-red-50/50 dark:bg-red-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                   }`}
                   value={formData.studentNumber}
                   onChange={handleInputChange("studentNumber")}
@@ -248,31 +292,42 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                   disabled={isSubmitting}
                 />
                 {errors.studentNumber && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     {errors.studentNumber}
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <label
                 htmlFor="major"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center"
               >
-                Ngành Học <span className="text-red-500">*</span>
+                <svg className="w-4 h-4 mr-2 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                Ngành Học <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
                 <input
                   type="text"
                   id="major"
                   name="major"
                   autoComplete="off"
                   required
-                  className={`w-full px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors ${
+                  className={`w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-gray-800/50 border backdrop-blur-sm rounded-xl shadow-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent dark:text-white transition-all duration-200 ${
                     errors.major
-                      ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
+                      ? "border-red-500 focus:ring-red-500 bg-red-50/50 dark:bg-red-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                   }`}
                   value={formData.major}
                   onChange={handleInputChange("major")}
@@ -281,62 +336,78 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                   disabled={isSubmitting}
                 />
                 {errors.major && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     {errors.major}
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-6">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+                className="group relative w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
               >
-                {isSubmitting ? (
-                  <>
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                <div className="relative flex items-center justify-center space-x-3">
+                  {isSubmitting ? (
+                    <>
+                      <svg
+                        className="animate-spin h-6 w-6 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <span className="text-lg">Đang khởi động...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-lg">Bắt đầu làm bài</span>
+                      <svg
+                        className="w-6 h-6 transform group-hover:translate-x-1 transition-transform duration-200"
+                        fill="none"
                         stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    <span>Starting Quiz...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Bắt đầu làm bài</span>
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                      />
-                    </svg>
-                  </>
-                )}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2.5}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </div>
               </button>
+
+              {/* Additional info */}
+              <div className="mt-6 text-center">
+                <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Thời gian sẽ bắt đầu khi bạn nhấn nút
+                </p>
+              </div>
             </div>
           </form>
 

@@ -139,7 +139,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
         </CardHeader>
         <CardContent>
           {/* Answer Options */}
-          <div className="space-y-3 mb-6 sm:mb-8">
+          <div className="space-y-4 mb-8 sm:mb-10">
             {question.answers.map((answer, index) => {
               const isSelected = selectedAnswer === answer.id;
               const letter = String.fromCharCode(65 + index); // A, B, C, D
@@ -147,10 +147,10 @@ const QuestionDisplay = memo(function QuestionDisplay({
               return (
                 <div
                   key={answer.id}
-                  className={`relative cursor-pointer transition-all duration-200 rounded-lg ${
+                  className={`group relative cursor-pointer transition-all duration-300 transform ${
                     isSelected
-                      ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800"
-                      : "hover:ring-1 hover:ring-gray-300 hover:ring-offset-2 dark:hover:ring-gray-600 dark:hover:ring-offset-gray-800"
+                      ? "scale-[1.02]"
+                      : "hover:scale-[1.01]"
                   }`}
                 >
                   <label className="block cursor-pointer">
@@ -165,29 +165,29 @@ const QuestionDisplay = memo(function QuestionDisplay({
                       aria-pressed={isSelected}
                     />
                     <div
-                      className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 ${
+                      className={`relative p-4 sm:p-6 border-2 rounded-2xl transition-all duration-300 backdrop-blur-sm ${
                         isSelected
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-500"
+                          ? "border-blue-500 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-blue-900/30 dark:to-indigo-900/30 shadow-lg"
+                          : "border-gray-200/50 dark:border-gray-700/50 bg-white/60 dark:bg-gray-800/60 hover:border-blue-300/50 dark:hover:border-blue-700/50 hover:bg-gradient-to-r hover:from-blue-50/20 hover:to-indigo-50/20 dark:hover:from-blue-900/10 dark:hover:to-indigo-900/10 hover:shadow-md"
                       }`}
                     >
-                      <div className="flex items-center space-x-3 sm:space-x-4">
+                      <div className="flex items-center space-x-4 sm:space-x-6">
                         <div
-                          className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
+                          className={`flex-shrink-0 w-12 h-12 rounded-2xl border-2 flex items-center justify-center transition-all duration-300 font-bold text-lg ${
                             isSelected
-                              ? "border-blue-500 bg-blue-500 text-white"
-                              : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                              ? "border-blue-500 bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-110"
+                              : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:border-blue-400 dark:group-hover:border-blue-600 group-hover:text-blue-600 dark:group-hover:text-blue-400"
                           }`}
                         >
-                          <span className="text-sm font-medium">{letter}</span>
+                          {letter}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p
                             id={`answer-${answer.id}`}
-                            className={`text-sm sm:text-base leading-relaxed break-words ${
+                            className={`text-base sm:text-lg leading-relaxed break-words transition-colors duration-200 ${
                               isSelected
-                                ? "text-gray-900 dark:text-white font-medium"
-                                : "text-gray-700 dark:text-gray-300"
+                                ? "text-gray-900 dark:text-white font-semibold"
+                                : "text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white"
                             }`}
                           >
                             {answer.text}
@@ -195,19 +195,24 @@ const QuestionDisplay = memo(function QuestionDisplay({
                         </div>
                         {isSelected && (
                           <div className="flex-shrink-0">
-                            <svg
-                              className="w-6 h-6 text-blue-500"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-300 to-indigo-300 dark:from-blue-700 dark:to-indigo-700 rounded-full blur-md opacity-60"></div>
+                              <div className="relative w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
+                                <svg
+                                  className="w-5 h-5 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -226,17 +231,19 @@ const QuestionDisplay = memo(function QuestionDisplay({
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
-            <Button
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-8">
+            <button
               onClick={onPrevious}
               disabled={!canGoPrevious}
-              variant="outline"
-              size="lg"
-              className="order-2 sm:order-1"
+              className={`group order-2 sm:order-1 flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                canGoPrevious
+                  ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transform hover:scale-105"
+                  : "bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+              }`}
               aria-label="Go to previous question"
             >
               <svg
-                className="w-4 h-4 mr-2"
+                className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -245,19 +252,19 @@ const QuestionDisplay = memo(function QuestionDisplay({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   d="M15 19l-7-7 7-7"
                 />
               </svg>
-              Previous
-            </Button>
+              <span>Câu trước</span>
+            </button>
 
             <div
-              className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 order-1 sm:order-2"
+              className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 order-1 sm:order-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full"
               role="note"
             >
               <svg
-                className="w-3 h-3 sm:w-4 sm:h-4"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -270,22 +277,26 @@ const QuestionDisplay = memo(function QuestionDisplay({
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>Answer required to continue</span>
+              <span>Cần chọn đáp án</span>
             </div>
 
-            <Button
+            <button
               onClick={handleNext}
               disabled={!selectedAnswer}
-              variant={isLastQuestion ? "success" : "primary"}
-              size="lg"
-              className="order-3"
+              className={`group order-3 flex items-center space-x-3 px-8 py-4 rounded-xl font-bold text-white transition-all duration-300 ${
+                selectedAnswer
+                  ? isLastQuestion
+                    ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transform hover:scale-[1.02]"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg transform hover:scale-[1.02]"
+                  : "bg-gray-300 dark:bg-gray-700 cursor-not-allowed"
+              }`}
               aria-label={
                 isLastQuestion ? "Finish quiz" : "Go to next question"
               }
             >
-              {isLastQuestion ? "Finish Quiz" : "Next"}
+              <span>{isLastQuestion ? "Hoàn thành" : "Tiếp theo"}</span>
               <svg
-                className="w-4 h-4 ml-2"
+                className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -294,11 +305,11 @@ const QuestionDisplay = memo(function QuestionDisplay({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   d={isLastQuestion ? "M5 13l4 4L19 7" : "M9 5l7 7-7 7"}
                 />
               </svg>
-            </Button>
+            </button>
           </div>
         </CardContent>
       </Card>
