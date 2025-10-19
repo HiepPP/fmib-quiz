@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Download, Share2, Home, RotateCcw } from "lucide-react";
+import html2canvas from "html2canvas";
 
 interface QuizCertificateProps {
   userName: string;
@@ -31,15 +32,199 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
 }) => {
   const [certificateId, setCertificateId] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
     setCertificateId(`FMIB-${Date.now().toString(36).toUpperCase()}`);
   }, []);
 
-  const handleDownload = () => {
-    // TODO: Implement PDF download functionality
-    window.print();
+  const handleDownload = async () => {
+    if (isDownloading) return;
+
+    const element = document.getElementById("certificateContainer");
+    if (!element) return;
+
+    setIsDownloading(true);
+
+    try {
+      // Create a canvas from the certificate element with improved configuration
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher resolution for better quality
+        useCORS: true, // Allow cross-origin images
+        allowTaint: true, // Allow tainted canvas for external images
+        backgroundColor: "#ffffff",
+        logging: false,
+        width: 800, // Fixed width for consistency
+        height: element.scrollHeight * (800 / element.scrollWidth), // Maintain aspect ratio
+        scrollX: 0,
+        scrollY: 0,
+        foreignObjectRendering: true, // Better for complex styling
+        imageTimeout: 15000, // Wait longer for images to load
+        removeContainer: false,
+        onclone: (clonedDoc, element) => {
+          // Apply all styles explicitly to the cloned document
+          const clonedElement = clonedDoc.getElementById(
+            "certificateContainer"
+          );
+          if (clonedElement) {
+            // Set explicit styles
+            clonedElement.style.width = "800px";
+            clonedElement.style.minWidth = "800px";
+            clonedElement.style.maxWidth = "800px";
+            clonedElement.style.margin = "0 auto";
+            clonedElement.style.backgroundColor = "#ffffff";
+            clonedElement.style.border = "12px solid #002b5c";
+            clonedElement.style.fontFamily = "'Times New Roman', Times, serif";
+            clonedElement.style.overflow = "hidden";
+            clonedElement.style.display = "block";
+            clonedElement.style.boxShadow = "none";
+          }
+
+          // Force Times New Roman font on all elements
+          const allElements = clonedElement?.querySelectorAll("*");
+          if (allElements) {
+            allElements.forEach((el) => {
+              const element = el as HTMLElement;
+              element.style.fontFamily = "'Times New Roman', Times, serif";
+            });
+          }
+
+          // Ensure all CSS variables are applied as actual values
+          const style = clonedDoc.createElement("style");
+          style.textContent = `
+            #certificateContainer, #certificateContainer * {
+              font-family: 'Times New Roman', Times, serif !important;
+            }
+            #certificateContainer {
+              --dark-blue: #002b5c;
+              --medium-blue: #003366;
+            }
+            #certificateContainer div[style*="color: var(--dark-blue)"] {
+              color: #002b5c !important;
+            }
+            #certificateContainer div[style*="color: var(--medium-blue)"] {
+              color: #003366 !important;
+            }
+            #certificateContainer .text-[#003366] {
+              color: #003366 !important;
+            }
+            #certificateContainer .text-[#dc3545] {
+              color: #dc3545 !important;
+            }
+            #certificateContainer .text-[#333333] {
+              color: #333333 !important;
+            }
+            #certificateContainer .bg-white {
+              background-color: #ffffff !important;
+            }
+            #certificateContainer .border-[#002b5c] {
+              border-color: #002b5c !important;
+            }
+            #certificateContainer .text-xl, #certificateContainer .text-2xl, #certificateContainer .text-4xl {
+              font-family: 'Times New Roman', Times, serif !important;
+              font-weight: bold !important;
+            }
+            #certificateContainer .flex-wrap {
+              flex-wrap: wrap !important;
+            }
+            #certificateContainer .break-words {
+              word-wrap: break-word !important;
+              word-break: break-word !important;
+            }
+            #certificateContainer .max-w-2xl {
+              max-width: 672px !important;
+            }
+            #certificateContainer img {
+              display: block !important;
+              margin: 0 auto !important;
+            }
+            #certificateContainer .text-center {
+              text-align: center !important;
+            }
+            #certificateContainer .mx-auto {
+              margin-left: auto !important;
+              margin-right: auto !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+
+          // Handle images - convert external images to data URLs if possible
+          const images = clonedElement?.querySelectorAll("img");
+          if (images) {
+            images.forEach(async (img) => {
+              // Create a high-quality FMIB logo as fallback or replacement
+              const createLogoCanvas = () => {
+                const logoCanvas = clonedDoc.createElement("canvas");
+                const logoCtx = logoCanvas.getContext("2d");
+                if (logoCtx) {
+                  // Set canvas size for high DPI
+                  logoCanvas.width = 400;
+                  logoCanvas.height = 120;
+
+                  // Clear canvas
+                  logoCtx.fillStyle = "#ffffff";
+                  logoCtx.fillRect(0, 0, 400, 120);
+
+                  // Draw FMIB text with professional styling
+                  logoCtx.fillStyle = "#002b5c";
+                  logoCtx.font = "bold 56px Times New Roman";
+                  logoCtx.textAlign = "center";
+                  logoCtx.textBaseline = "middle";
+                  logoCtx.fillText("FMIB", 200, 60);
+
+                  // Add club text
+                  logoCtx.font = "24px Times New Roman";
+                  logoCtx.fillStyle = "#003366";
+                  logoCtx.fillText(
+                    "Future Marketer International Businessman",
+                    200,
+                    95
+                  );
+                }
+                return logoCanvas.toDataURL("image/png");
+              };
+
+              // Always use the high-quality canvas logo for consistency
+              const logoDataUrl = createLogoCanvas();
+              img.src = logoDataUrl;
+              img.style.width = "200px";
+              img.style.height = "60px";
+              img.style.display = "block";
+              img.style.margin = "0 auto";
+              img.crossOrigin = "anonymous";
+            });
+          }
+        },
+      });
+
+      // Convert canvas to blob and download
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `FMIB-Quiz-Certificate-${userName.replace(
+              /\s+/g,
+              "-"
+            )}-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }
+          setIsDownloading(false);
+        },
+        "image/png",
+        1.0
+      );
+    } catch (error) {
+      console.error("Error generating certificate:", error);
+      setIsDownloading(false);
+      // Fallback to print if html2canvas fails
+      window.print();
+    }
   };
 
   const handleShare = () => {
@@ -64,9 +249,10 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             variant="outline"
             size="sm"
             className="flex items-center gap-2 w-full sm:w-auto"
+            disabled={isDownloading}
           >
             <Download className="w-4 h-4" />
-            Download
+            {isDownloading ? "Generating..." : "Download"}
           </Button>
           <Button
             onClick={handleShare}
@@ -99,17 +285,44 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
 
         {/* Certificate Container */}
         <div
-          className="certificate-container bg-white border-[8px] sm:border-[12px] border-[#002b5c] overflow-hidden"
+          className="certificate-container bg-white border-[8px] sm:border-[12px] border-[#002b5c] overflow-hidden mx-auto"
           id="certificateContainer"
-          style={{ display: "block" }}
+          style={{
+            display: "block",
+            width: "800px",
+            fontFamily: "'Times New Roman', Times, serif",
+          }}
         >
           {/* Certificate Header with Logos */}
           <div className="bg-white p-4 sm:p-6 text-center">
             <div className="flex justify-center items-center gap-4 sm:gap-6 mb-4">
               <img
-                src="https://z-cdn-media.chatglm.cn/files/dc880d76-db2c-46e3-944e-d1f27b898212_logo.png?auth_key=1792307401-0469ab1e8edb440097c892d6cc0c3d1f-0-7b3a9be7520d0a833a4b252a3c0369b5"
-                alt="HUTECH Logo"
+                src="/fmib-banner.png"
+                alt="FMIB Banner"
                 className="h-12 sm:h-16 w-auto"
+                onLoad={(e) => {
+                  // Preload the image to ensure it's available for export
+                  const img = e.target as HTMLImageElement;
+                  const canvas = document.createElement("canvas");
+                  const ctx = canvas.getContext("2d");
+                  if (ctx) {
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    ctx.drawImage(img, 0, 0);
+                    // Store data URL for later use in export
+                    img.setAttribute("data-fallback", canvas.toDataURL());
+                  }
+                }}
+                onError={(e) => {
+                  // Fallback: create a simple text logo if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = document.createElement("div");
+                  fallback.className =
+                    "text-2xl sm:text-4xl font-bold text-blue-800";
+                  fallback.textContent = "FMIB";
+                  target.parentNode?.insertBefore(fallback, target.nextSibling);
+                }}
               />
             </div>
           </div>
@@ -150,22 +363,31 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
               {userName}
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 sm:w-32 h-0.5 bg-[#003366]"></div>
             </div>
-            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-8 mb-6 sm:mb-8">
-              <div className="text-center text-base sm:text-xl">
-                <span className="text-base sm:text-xl text-[#333333] font-bold">Lớp:</span>
+            <div className="flex flex-wrap justify-center gap-6 sm:gap-8 mb-6 sm:mb-8 max-w-2xl mx-auto">
+              <div className="text-center text-base sm:text-xl flex-shrink-0">
+                <span className="text-base sm:text-xl text-[#333333] font-bold">
+                  Lớp:
+                </span>
                 <span className="ml-1 text-[#333333]" id="certClass">
                   {classNumber}
                 </span>
               </div>
-              <div className="text-center text-base sm:text-xl">
-                <span className="text-base sm:text-xl text-[#333333] font-bold">MSSV:</span>
+              <div className="text-center text-base sm:text-xl flex-shrink-0">
+                <span className="text-base sm:text-xl text-[#333333] font-bold">
+                  MSSV:
+                </span>
                 <span className="ml-1 text-[#333333]" id="certId">
                   {studentNumber}
                 </span>
               </div>
-              <div className="text-center text-base sm:text-xl">
-                <span className="text-sm sm:text-xl text-[#333333] font-bold">Ngành học:</span>
-                <span className="ml-1 text-[#333333]" id="certMajor">
+              <div className="text-center text-base sm:text-xl flex-shrink-0 min-w-0">
+                <span className="text-sm sm:text-xl text-[#333333] font-bold">
+                  Ngành:
+                </span>
+                <span
+                  className="ml-1 text-[#333333] break-words"
+                  id="certMajor"
+                >
                   {major}
                 </span>
               </div>
@@ -224,10 +446,11 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
           {/* Download Button */}
           <div className="text-center py-4 sm:py-6 print:hidden">
             <button
-              className="bg-[#ffc107] hover:bg-[#e0a800] text-black font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full transition-colors text-sm sm:text-base"
+              className="bg-[#ffc107] hover:bg-[#e0a800] disabled:bg-gray-400 text-black font-bold py-2 sm:py-3 px-6 sm:px-8 rounded-full transition-colors text-sm sm:text-base disabled:cursor-not-allowed"
               onClick={handleDownload}
+              disabled={isDownloading}
             >
-              Tải chứng nhận
+              {isDownloading ? "Đang tạo..." : "Tải chứng nhận"}
             </button>
           </div>
         </div>
@@ -247,8 +470,29 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
           </div>
         )}
 
-        {/* Print Styles */}
-        <style jsx>{`
+        {/* Export and Print Styles */}
+        <style jsx global>{`
+          /* CSS Variables for certificate colors */
+          :root {
+            --dark-blue: #002b5c;
+            --medium-blue: #003366;
+          }
+
+          /* Certificate export optimization */
+          .certificate-container {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            font-family: "Times New Roman", Times, serif;
+          }
+
+          /* Ensure text rendering is consistent */
+          .certificate-container * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+          }
+
+          /* Print Styles */
           @media print {
             .print\\:hidden {
               display: none !important;
@@ -258,19 +502,23 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
               background: white !important;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
+              margin: 0 !important;
+              padding: 0 !important;
             }
 
             .min-h-screen {
               min-height: auto !important;
               padding: 0 !important;
+              background: white !important;
             }
 
             .certificate-container {
               box-shadow: none !important;
-              margin: 0 !important;
+              margin: 0 auto !important;
               border-color: #002b5c !important;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
+              page-break-inside: avoid;
             }
 
             .certificate-footer {
@@ -311,6 +559,14 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
                 font-size: 1.5rem !important;
               }
             }
+          }
+
+          /* Canvas capture optimization for html2canvas */
+          .html2canvas-container {
+            position: relative !important;
+            width: auto !important;
+            height: auto !important;
+            overflow: visible !important;
           }
         `}</style>
       </div>
