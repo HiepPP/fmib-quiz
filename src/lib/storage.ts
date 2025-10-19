@@ -8,6 +8,7 @@ export interface UserInfo {
   name: string
   studentNumber: string
   classNumber: string
+  major: string
 }
 
 export interface QuizSession {
