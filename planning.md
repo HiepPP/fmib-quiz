@@ -1,0 +1,10 @@
+- The website is quizapp
+- use tailwindcss, shadcn for styling
+- Have 2 page: admin for config questions and answers, page for user
+- User page: 
+ - Have form for user input:name, student number, class number (all first is required)
+ - After submit user information, next is the question page, each page is one question and 4 answer, require choose answer before click next
+ - User answer store in localstorage
+ - in last question, collect all user answer in localstorage and submit to backend api to verify
+ - session is 10 minute after submit user information form, mean when first question display, user have 10 minute to complete, display as countdown timer
+ - if user if not complete before 10 minute, automatic complete the session, collect answer to submit backend check
