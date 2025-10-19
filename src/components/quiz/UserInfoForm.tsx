@@ -15,10 +15,10 @@ interface FormErrors {
 
 export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
   const [formData, setFormData] = useState<UserInfo>({
-    name: "",
-    studentNumber: "",
-    classNumber: "",
-    major: "",
+    name: "Chấp Hịp",
+    studentNumber: "20240001",
+    classNumber: "A1",
+    major: "Công nghệ thông tin",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
