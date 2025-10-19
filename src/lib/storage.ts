@@ -196,5 +196,6 @@ export const isSessionExpired = (startTime: number): boolean => {
 export const getRemainingTime = (startTime: number): number => {
   const SESSION_DURATION = 10 * 60 * 1000 // 10 minutes in milliseconds
   const elapsed = Date.now() - startTime
-  return Math.max(0, SESSION_DURATION - elapsed)
+  const remainingMs = Math.max(0, SESSION_DURATION - elapsed)
+  return Math.ceil(remainingMs / 1000) // Convert to seconds and round up
 }

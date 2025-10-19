@@ -6,7 +6,7 @@ import Layout from "@/components/layout/Layout";
 import UserInfoForm from "@/components/quiz/UserInfoForm";
 import QuestionDisplay from "@/components/quiz/QuestionDisplay";
 import QuizTimer from "@/components/quiz/QuizTimer";
-// import EnhancedQuizTimer from "@/components/quiz/EnhancedQuizTimer";
+import EnhancedQuizTimer from "@/components/quiz/EnhancedQuizTimer";
 import QuizResults from "@/components/quiz/QuizResults";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
@@ -225,15 +225,15 @@ const QuizPage: NextPage = () => {
   }, [userInfo, isTimerExpired, questions]);
 
   // Handle timer expiration
-  // const handleTimeExpire = useCallback(() => {
-  //   setIsTimerExpired(true);
-  //   handleFinishQuiz();
-  // }, [handleFinishQuiz]);
+  const handleTimeExpire = useCallback(() => {
+    setIsTimerExpired(true);
+    handleFinishQuiz();
+  }, [handleFinishQuiz]);
 
   // Handle timer tick
-  // const handleTimerTick = useCallback((remainingTime: number) => {
-  //   setTimeRemaining(remainingTime);
-  // }, []);
+  const handleTimerTick = useCallback((remainingTime: number) => {
+    setTimeRemaining(remainingTime);
+  }, []);
 
   const handleUserInfoSubmit = (submittedUserInfo: UserInfo) => {
     const startTime = Date.now();
@@ -388,19 +388,16 @@ const QuizPage: NextPage = () => {
                 {currentStep === "quiz" && (
                   <div>
                     <main className="max-w-4xl mx-auto" role="main">
-                      {/* Enhanced Timer */}
-                      {/* {sessionStartTime && (
-                        <div className="mb-4 sm:mb-6">
-                          <SlideIn direction="down" delay={100}>
-                            <EnhancedQuizTimer
-                              startTime={sessionStartTime}
-                              onTimeExpire={handleTimeExpire}
-                              onTick={handleTimerTick}
-                              isPaused={false}
-                            />
-                          </SlideIn>
+                      {/* Simple Timer (hidden but functional to keep timeRemaining updated) */}
+                      {sessionStartTime && (
+                        <div className="hidden">
+                          <QuizTimer
+                            startTime={sessionStartTime}
+                            onTimeExpire={handleTimeExpire}
+                            onTick={handleTimerTick}
+                          />
                         </div>
-                      )} */}
+                      )}
                       {/* Question Display */}
                       {questions.length > 0 &&
                         currentQuestionIndex < questions.length && (
