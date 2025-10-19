@@ -148,9 +148,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
                 <div
                   key={answer.id}
                   className={`group relative cursor-pointer transition-all duration-300 transform ${
-                    isSelected
-                      ? "scale-[1.02]"
-                      : "hover:scale-[1.01]"
+                    isSelected ? "scale-[1.02]" : "hover:scale-[1.01]"
                   }`}
                 >
                   <label className="block cursor-pointer">
@@ -231,11 +229,11 @@ const QuestionDisplay = memo(function QuestionDisplay({
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-8">
+          <div className="flex items-center justify-between gap-3 sm:gap-6 mt-8">
             <button
               onClick={onPrevious}
               disabled={!canGoPrevious}
-              className={`group order-2 sm:order-1 flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              className={`group flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
                 canGoPrevious
                   ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow-md transform hover:scale-105"
                   : "bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-600 cursor-not-allowed"
@@ -259,31 +257,10 @@ const QuestionDisplay = memo(function QuestionDisplay({
               <span>Câu trước</span>
             </button>
 
-            <div
-              className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 order-1 sm:order-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full"
-              role="note"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span>Cần chọn đáp án</span>
-            </div>
-
             <button
               onClick={handleNext}
               disabled={!selectedAnswer}
-              className={`group order-3 flex items-center space-x-3 px-8 py-4 rounded-xl font-bold text-white transition-all duration-300 ${
+              className={`group flex items-center space-x-3 px-8 py-4 rounded-xl font-bold text-white transition-all duration-300 ${
                 selectedAnswer
                   ? isLastQuestion
                     ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transform hover:scale-[1.02]"
