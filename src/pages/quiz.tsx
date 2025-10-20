@@ -66,23 +66,16 @@ const QuizPage: NextPage = () => {
       quizResult &&
       (quizResult.summary?.percentage || 0) >= 60
     ) {
-      // Trigger confetti explosion
-      const duration = 3 * 1000; // 3 seconds
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+      // Trigger continuous confetti explosion (slower, more gentle)
+      const defaults = { startVelocity: 15, spread: 360, ticks: 80, zIndex: 0 };
 
       function randomInRange(min: number, max: number) {
         return Math.random() * (max - min) + min;
       }
 
       const interval: NodeJS.Timeout = setInterval(function () {
-        const timeLeft = animationEnd - Date.now();
-
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
-
-        const particleCount = 50 * (timeLeft / duration);
+        // Continuous confetti - no end condition
+        const particleCount = 25;
 
         // Launch confetti from random positions
         confetti({
@@ -95,7 +88,10 @@ const QuizPage: NextPage = () => {
           particleCount,
           origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
         });
-      }, 250);
+      }, 600);
+
+      // Store interval ID for cleanup (optional, but good practice)
+      return () => clearInterval(interval);
     }
   }, [currentStep, quizResult]);
 
@@ -704,7 +700,7 @@ const QuizPage: NextPage = () => {
                             )}
 
                             {userInfo && (
-                              <div className="mb-6 rounded-lg bg-gray-50 p-4 text-left dark:bg-gray-700">
+                              <div className="mb-8 rounded-lg bg-gray-50 p-4 text-left dark:bg-gray-700">
                                 <h3 className="mb-2 font-medium text-gray-900 dark:text-white">
                                   Quiz Information:
                                 </h3>
@@ -724,49 +720,67 @@ const QuizPage: NextPage = () => {
                               </div>
                             )}
 
-                            <div className="flex flex-col justify-center gap-4 sm:flex-row">
-                              {/* Certificate button for scores >= 60% */}
-                              {quizResult &&
-                                (quizResult.summary?.percentage || 0) >= 60 && (
-                                  <div className="animate-bounce">
-                                    <button
-                                      onClick={handleViewCertificate}
-                                      className="relative transform rounded-md bg-gradient-to-r from-yellow-400 to-orange-500 px-8 py-3 font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-yellow-500 hover:to-orange-600 hover:shadow-xl"
-                                    >
-                                      <span className="flex items-center space-x-2">
-                                        <svg
-                                          className="h-6 w-6"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                                          />
-                                        </svg>
-                                        <span>View Your Certificate</span>
-                                      </span>
-                                    </button>
-                                  </div>
-                                )}
+                            {/* Spotlight Certificate Button Section */}
+                            {quizResult &&
+                              (quizResult.summary?.percentage || 0) >= 60 && (
+                                <div className="mb-8">
+                                  <div className="mx-auto max-w-md">
+                                    <div className="relative animate-pulse">
+                                      {/* Glow effect background */}
+                                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-yellow-400/20 to-orange-500/20 blur-xl"></div>
 
-                              <div className="flex justify-center space-x-4">
-                                <button
-                                  onClick={handleRestartQuiz}
-                                  className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-                                >
-                                  Take Quiz Again
-                                </button>
-                                <button
-                                  onClick={handleGoHome}
-                                  className="rounded-md bg-gray-600 px-6 py-2 font-medium text-white transition-colors hover:bg-gray-700"
-                                >
-                                  Go Home
-                                </button>
-                              </div>
+                                      {/* Certificate button with enhanced styling */}
+                                      <div className="relative animate-bounce">
+                                        <button
+                                          onClick={handleViewCertificate}
+                                          className="relative w-full transform rounded-xl bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 px-10 py-4 font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 focus:outline-none focus:ring-4 focus:ring-yellow-300/50"
+                                        >
+                                          <span className="flex items-center justify-center space-x-3">
+                                            <svg
+                                              className="h-8 w-8 flex-shrink-0"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                                              />
+                                            </svg>
+                                            <span className="text-lg">View Your Certificate</span>
+                                          </span>
+                                          {/* Badge indicator */}
+                                          <div className="absolute -top-2 -right-2 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
+                                            🏆
+                                          </div>
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    {/* Spotlight subtitle */}
+                                    <p className="mt-4 text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+                                      🎉 Congratulations! You have earned your certificate
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
+                            {/* Secondary actions */}
+                            <div className="flex justify-center space-x-4">
+                              <button
+                                onClick={handleRestartQuiz}
+                                className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+                              >
+                                Take Quiz Again
+                              </button>
+                              <button
+                                onClick={handleGoHome}
+                                className="rounded-md bg-gray-600 px-6 py-2 font-medium text-white transition-colors hover:bg-gray-700"
+                              >
+                                Go Home
+                              </button>
                             </div>
                           </div>
                         </CardContent>
