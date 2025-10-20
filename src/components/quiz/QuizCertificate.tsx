@@ -32,10 +32,35 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
   const [certificateId, setCertificateId] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [scale, setScale] = useState(1);
 
   useEffect(() => {
     setIsMounted(true);
     setCertificateId(`FMIB-${Date.now().toString(36).toUpperCase()}`);
+
+    // Calculate scale based on screen width
+    const calculateScale = () => {
+      const screenWidth = window.innerWidth;
+      const certificateWidth = 800; // Base width
+      const padding = 32; // 16px on each side
+
+      // If screen is smaller than certificate width + padding, scale it down
+      if (screenWidth < certificateWidth + padding) {
+        const availableWidth = screenWidth - padding;
+        const newScale = availableWidth / certificateWidth;
+        // Minimum scale of 0.5 to maintain readability
+        setScale(Math.max(newScale, 0.5));
+      } else {
+        setScale(1);
+      }
+    };
+
+    calculateScale();
+    window.addEventListener('resize', calculateScale);
+
+    return () => {
+      window.removeEventListener('resize', calculateScale);
+    };
   }, []);
 
   const handleDownload = async () => {
@@ -78,8 +103,8 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
         allowTaint: true, // Allow tainted canvas for external images
         backgroundColor: "#ffffff",
         logging: false,
-        width: element.offsetWidth, // Use actual width
-        height: element.offsetHeight, // Use actual height
+        width: 800, // Use base width for consistent export
+        height: element.offsetHeight / scale, // Adjust height based on current scale
         scrollX: 0,
         scrollY: -window.scrollY,
         windowWidth: element.scrollWidth,
@@ -93,10 +118,10 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             "certificateContainer"
           );
           if (clonedElement) {
-            // Set explicit styles
-            clonedElement.style.width = element.offsetWidth + "px";
-            clonedElement.style.minWidth = element.offsetWidth + "px";
-            clonedElement.style.maxWidth = element.offsetWidth + "px";
+            // Set explicit styles - remove scale for export
+            clonedElement.style.width = "800px";
+            clonedElement.style.minWidth = "800px";
+            clonedElement.style.maxWidth = "800px";
             clonedElement.style.margin = "0";
             clonedElement.style.backgroundColor = "#ffffff";
             clonedElement.style.border = "12px solid #002b5c";
@@ -105,6 +130,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             clonedElement.style.display = "block";
             clonedElement.style.boxShadow = "none";
             clonedElement.style.padding = "0";
+            clonedElement.style.transform = "none"; // Remove scale for export
           }
 
           // Force Times New Roman font on all elements
@@ -311,16 +337,26 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
           </Button>
         </div>
 
-        {/* Certificate Container */}
+        {/* Certificate Wrapper */}
         <div
-          className="certificate-container bg-white border-[12px] border-[#002b5c] overflow-hidden mx-auto"
-          id="certificateContainer"
+          className="mx-auto mb-6"
           style={{
-            display: "block",
-            width: "800px",
-            fontFamily: "'Times New Roman', Times, serif",
+            width: `${800 * scale}px`,
+            minHeight: `${600 * scale}px`,
           }}
         >
+          {/* Certificate Container */}
+          <div
+            className="certificate-container bg-white border-[12px] border-[#002b5c] overflow-hidden transition-transform duration-300 ease-out"
+            id="certificateContainer"
+            style={{
+              display: "block",
+              width: "800px",
+              fontFamily: "'Times New Roman', Times, serif",
+              transform: `scale(${scale})`,
+              transformOrigin: "top center",
+            }}
+          >
           {/* Certificate Header with Logos */}
           <div className="bg-white p-6 text-center">
             <div className="flex justify-center items-center gap-6 mb-4">
@@ -463,6 +499,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
 
