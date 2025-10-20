@@ -2,6 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
+import confetti from "canvas-confetti";
 import Layout from "@/components/layout/Layout";
 import UserInfoForm from "@/components/quiz/UserInfoForm";
 import QuestionDisplay from "@/components/quiz/QuestionDisplay";
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/AnimatedLoading";
 import { UserInfo, Question, QuizAnswer } from "@/types/quiz";
 import { storage, isSessionExpired } from "@/lib/storage";
-import { quizService } from "@/lib/quizService";
+import { quizService, type QuizServiceResponse } from "@/lib/quizService";
 
 type QuizStep = "info" | "quiz" | "results";
 
@@ -51,12 +52,52 @@ const QuizPage: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [quizResult, setQuizResult] = useState<any>(null);
+  const [quizResult, setQuizResult] = useState<QuizServiceResponse['data'] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(
     new Map(),
   );
+
+  // Trigger confetti effect when score >= 60% and results are shown
+  useEffect(() => {
+    if (
+      currentStep === "results" &&
+      quizResult &&
+      (quizResult.summary?.percentage || 0) >= 60
+    ) {
+      // Trigger confetti explosion
+      const duration = 3 * 1000; // 3 seconds
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+      function randomInRange(min: number, max: number) {
+        return Math.random() * (max - min) + min;
+      }
+
+      const interval: NodeJS.Timeout = setInterval(function () {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+
+        // Launch confetti from random positions
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        });
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        });
+      }, 250);
+    }
+  }, [currentStep, quizResult]);
 
   // Check for existing session on mount
   useEffect(() => {
@@ -110,66 +151,6 @@ const QuizPage: NextPage = () => {
     const currentQuestion = questions[currentQuestionIndex];
     return selectedAnswers.get(currentQuestion.id) || null;
   }, [questions, currentQuestionIndex, selectedAnswers]);
-
-  // Optimized answer selection with immediate local state update
-  const handleAnswerSelect = useCallback(
-    (answerId: string) => {
-      if (questions.length === 0 || currentQuestionIndex >= questions.length)
-        return;
-
-      const currentQuestion = questions[currentQuestionIndex];
-
-      // Update local state immediately for instant UI feedback
-      setSelectedAnswers((prev) =>
-        new Map(prev).set(currentQuestion.id, answerId),
-      );
-
-      // Prepare answer for localStorage
-      const answer: QuizAnswer = {
-        questionId: currentQuestion.id,
-        answerId,
-      };
-
-      // Save to localStorage asynchronously (non-blocking)
-      setTimeout(() => {
-        storage.saveUserAnswer(answer);
-      }, 0);
-    },
-    [questions, currentQuestionIndex],
-  );
-
-  // Handle next question
-  const handleNext = useCallback(() => {
-    if (currentQuestionIndex < questions.length - 1) {
-      const nextIndex = currentQuestionIndex + 1;
-      setCurrentQuestionIndex(nextIndex);
-
-      // Update session
-      const session = storage.getQuizSession();
-      if (session) {
-        const updatedSession = { ...session, currentQuestionIndex: nextIndex };
-        storage.saveQuizSession(updatedSession);
-      }
-    } else {
-      // Last question, finish quiz
-      handleFinishQuiz();
-    }
-  }, [currentQuestionIndex, questions.length]);
-
-  // Handle previous question
-  const handlePrevious = useCallback(() => {
-    if (currentQuestionIndex > 0) {
-      const prevIndex = currentQuestionIndex - 1;
-      setCurrentQuestionIndex(prevIndex);
-
-      // Update session
-      const session = storage.getQuizSession();
-      if (session) {
-        const updatedSession = { ...session, currentQuestionIndex: prevIndex };
-        storage.saveQuizSession(updatedSession);
-      }
-    }
-  }, [currentQuestionIndex]);
 
   // Handle quiz completion
   const handleFinishQuiz = useCallback(async () => {
@@ -225,6 +206,66 @@ const QuizPage: NextPage = () => {
     }
   }, [userInfo, isTimerExpired, questions]);
 
+  // Optimized answer selection with immediate local state update
+  const handleAnswerSelect = useCallback(
+    (answerId: string) => {
+      if (questions.length === 0 || currentQuestionIndex >= questions.length)
+        return;
+
+      const currentQuestion = questions[currentQuestionIndex];
+
+      // Update local state immediately for instant UI feedback
+      setSelectedAnswers((prev) =>
+        new Map(prev).set(currentQuestion.id, answerId),
+      );
+
+      // Prepare answer for localStorage
+      const answer: QuizAnswer = {
+        questionId: currentQuestion.id,
+        answerId,
+      };
+
+      // Save to localStorage asynchronously (non-blocking)
+      setTimeout(() => {
+        storage.saveUserAnswer(answer);
+      }, 0);
+    },
+    [questions, currentQuestionIndex],
+  );
+
+  // Handle next question
+  const handleNext = useCallback(() => {
+    if (currentQuestionIndex < questions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+
+      // Update session
+      const session = storage.getQuizSession();
+      if (session) {
+        const updatedSession = { ...session, currentQuestionIndex: nextIndex };
+        storage.saveQuizSession(updatedSession);
+      }
+    } else {
+      // Last question, finish quiz
+      handleFinishQuiz();
+    }
+  }, [currentQuestionIndex, questions.length, handleFinishQuiz]);
+
+  // Handle previous question
+  const handlePrevious = useCallback(() => {
+    if (currentQuestionIndex > 0) {
+      const prevIndex = currentQuestionIndex - 1;
+      setCurrentQuestionIndex(prevIndex);
+
+      // Update session
+      const session = storage.getQuizSession();
+      if (session) {
+        const updatedSession = { ...session, currentQuestionIndex: prevIndex };
+        storage.saveQuizSession(updatedSession);
+      }
+    }
+  }, [currentQuestionIndex]);
+
   // Handle timer expiration
   const handleTimeExpire = useCallback(() => {
     setIsTimerExpired(true);
@@ -271,6 +312,19 @@ const QuizPage: NextPage = () => {
 
   const handleGoHome = () => {
     router.push("/");
+  };
+
+  const handleViewCertificate = () => {
+    if (userInfo && quizResult) {
+      // Store certificate data in localStorage for the certificate page to retrieve
+      const certificateData = {
+        userInfo,
+        quizResult,
+        completionTime: new Date().toISOString(),
+      };
+      localStorage.setItem("certificateData", JSON.stringify(certificateData));
+      router.push("/certificate");
+    }
   };
 
   if (isLoading) {
@@ -670,19 +724,49 @@ const QuizPage: NextPage = () => {
                               </div>
                             )}
 
-                            <div className="flex justify-center space-x-4">
-                              <button
-                                onClick={handleRestartQuiz}
-                                className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-                              >
-                                Take Quiz Again
-                              </button>
-                              <button
-                                onClick={handleGoHome}
-                                className="rounded-md bg-gray-600 px-6 py-2 font-medium text-white transition-colors hover:bg-gray-700"
-                              >
-                                Go Home
-                              </button>
+                            <div className="flex flex-col justify-center gap-4 sm:flex-row">
+                              {/* Certificate button for scores >= 60% */}
+                              {quizResult &&
+                                (quizResult.summary?.percentage || 0) >= 60 && (
+                                  <div className="animate-bounce">
+                                    <button
+                                      onClick={handleViewCertificate}
+                                      className="relative transform rounded-md bg-gradient-to-r from-yellow-400 to-orange-500 px-8 py-3 font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-yellow-500 hover:to-orange-600 hover:shadow-xl"
+                                    >
+                                      <span className="flex items-center space-x-2">
+                                        <svg
+                                          className="h-6 w-6"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                                          />
+                                        </svg>
+                                        <span>View Your Certificate</span>
+                                      </span>
+                                    </button>
+                                  </div>
+                                )}
+
+                              <div className="flex justify-center space-x-4">
+                                <button
+                                  onClick={handleRestartQuiz}
+                                  className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+                                >
+                                  Take Quiz Again
+                                </button>
+                                <button
+                                  onClick={handleGoHome}
+                                  className="rounded-md bg-gray-600 px-6 py-2 font-medium text-white transition-colors hover:bg-gray-700"
+                                >
+                                  Go Home
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </CardContent>
