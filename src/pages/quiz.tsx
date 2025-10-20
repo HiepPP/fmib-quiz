@@ -6,11 +6,8 @@ import Layout from "@/components/layout/Layout";
 import UserInfoForm from "@/components/quiz/UserInfoForm";
 import QuestionDisplay from "@/components/quiz/QuestionDisplay";
 import QuizTimer from "@/components/quiz/QuizTimer";
-import EnhancedQuizTimer from "@/components/quiz/EnhancedQuizTimer";
-import QuizResults from "@/components/quiz/QuizResults";
 import { Button } from "@/components/ui/Button";
-import { Card, CardHeader, CardContent } from "@/components/ui/Card";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Alert } from "@/components/ui/Alert";
 import {
   AnimatedLoading,
@@ -19,7 +16,7 @@ import {
   SlideIn,
   ScaleIn,
 } from "@/components/ui/AnimatedLoading";
-import { UserInfo, QuizSession, Question, QuizAnswer } from "@/types/quiz";
+import { UserInfo, Question, QuizAnswer } from "@/types/quiz";
 import { storage, isSessionExpired } from "@/lib/storage";
 import { quizService } from "@/lib/quizService";
 
@@ -57,7 +54,9 @@ const QuizPage: NextPage = () => {
   const [quizResult, setQuizResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(new Map());
+  const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(
+    new Map(),
+  );
 
   // Check for existing session on mount
   useEffect(() => {
@@ -66,7 +65,7 @@ const QuizPage: NextPage = () => {
 
     if (savedQuestions.length === 0) {
       setError(
-        "No quiz questions available. Please contact the administrator."
+        "No quiz questions available. Please contact the administrator.",
       );
       setIsLoading(false);
       return;
@@ -121,7 +120,9 @@ const QuizPage: NextPage = () => {
       const currentQuestion = questions[currentQuestionIndex];
 
       // Update local state immediately for instant UI feedback
-      setSelectedAnswers(prev => new Map(prev).set(currentQuestion.id, answerId));
+      setSelectedAnswers((prev) =>
+        new Map(prev).set(currentQuestion.id, answerId),
+      );
 
       // Prepare answer for localStorage
       const answer: QuizAnswer = {
@@ -134,7 +135,7 @@ const QuizPage: NextPage = () => {
         storage.saveUserAnswer(answer);
       }, 0);
     },
-    [questions, currentQuestionIndex]
+    [questions, currentQuestionIndex],
   );
 
   // Handle next question
@@ -212,7 +213,7 @@ const QuizPage: NextPage = () => {
     } catch (error) {
       console.error("Quiz submission error:", error);
       setSubmitError(
-        error instanceof Error ? error.message : "Failed to submit quiz"
+        error instanceof Error ? error.message : "Failed to submit quiz",
       );
 
       // Still complete the quiz even if API fails
@@ -279,10 +280,10 @@ const QuizPage: NextPage = () => {
           <title>FMIB Quiz - Loading</title>
         </Head>
         <Layout title="FMIB Quiz">
-          <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+          <div className="flex min-h-[60vh] flex-1 items-center justify-center">
             <PageTransition>
-              <Card variant="ghost" className="max-w-md mx-auto">
-                <CardContent className="text-center p-8">
+              <Card variant="ghost" className="mx-auto max-w-md">
+                <CardContent className="p-8 text-center">
                   <AnimatedLoading
                     type="dots"
                     size="lg"
@@ -310,9 +311,9 @@ const QuizPage: NextPage = () => {
           <title>FMIB Quiz - Error</title>
         </Head>
         <Layout title="FMIB Quiz">
-          <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+          <div className="flex min-h-[60vh] flex-1 items-center justify-center">
             <PageTransition>
-              <div className="max-w-md mx-auto w-full px-4">
+              <div className="mx-auto w-full max-w-md px-4">
                 <SlideIn direction="up" delay={100}>
                   <Alert
                     variant="error"
@@ -344,8 +345,8 @@ const QuizPage: NextPage = () => {
           {currentStep === "info"
             ? "FMIB Quiz - Start"
             : currentStep === "quiz"
-            ? "FMIB Quiz - In Progress"
-            : "FMIB Quiz - Results"}
+              ? "FMIB Quiz - In Progress"
+              : "FMIB Quiz - Results"}
         </title>
         <meta name="description" content="Take the FMIB quiz" />
       </Head>
@@ -353,10 +354,10 @@ const QuizPage: NextPage = () => {
       <Layout title="FMIB Quiz">
         <PageTransition>
           <div className="flex-1 py-4 sm:py-6 lg:py-8">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               {/* Header */}
               <header
-                className="text-center mb-6 sm:mb-8 lg:mb-10"
+                className="mb-6 text-center sm:mb-8 lg:mb-10"
                 role="banner"
               >
                 {/* <FadeIn>
@@ -387,7 +388,7 @@ const QuizPage: NextPage = () => {
               <FadeIn delay={200}>
                 {currentStep === "quiz" && (
                   <div>
-                    <main className="max-w-4xl mx-auto" role="main">
+                    <main className="mx-auto max-w-4xl" role="main">
                       {/* Simple Timer (hidden but functional to keep timeRemaining updated) */}
                       {sessionStartTime && (
                         <div className="hidden">
@@ -423,7 +424,7 @@ const QuizPage: NextPage = () => {
                       {/* Submitting Overlay */}
                       {isSubmitting && (
                         <div
-                          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm p-4 animate-fade-in"
+                          className="bg-opacity-50 animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black p-4 backdrop-blur-sm"
                           role="dialog"
                           aria-modal="true"
                           aria-labelledby="submitting-title"
@@ -432,12 +433,12 @@ const QuizPage: NextPage = () => {
                           <ScaleIn>
                             <Card
                               variant="elevated"
-                              className="max-w-sm w-full mx-4 shadow-2xl"
+                              className="mx-4 w-full max-w-sm shadow-2xl"
                             >
-                              <CardContent className="text-center p-6">
+                              <CardContent className="p-6 text-center">
                                 <h2
                                   id="submitting-title"
-                                  className="text-lg font-semibold text-gray-900 dark:text-white mb-2"
+                                  className="mb-2 text-lg font-semibold text-gray-900 dark:text-white"
                                 >
                                   {isTimerExpired
                                     ? "Time expired! Submitting quiz..."
@@ -461,7 +462,7 @@ const QuizPage: NextPage = () => {
                       )}
                       {/* Submit Error Alert */}
                       {submitError && (
-                        <div className="mt-6 max-w-md mx-auto">
+                        <div className="mx-auto mt-6 max-w-md">
                           <SlideIn direction="up">
                             <Alert variant="error" title="Submission Error">
                               <div className="space-y-2">
@@ -495,17 +496,17 @@ const QuizPage: NextPage = () => {
 
               <FadeIn delay={300}>
                 {currentStep === "results" && (
-                  <div className="max-w-2xl mx-auto">
+                  <div className="mx-auto max-w-2xl">
                     <SlideIn direction="up" delay={100}>
                       <Card variant="elevated">
                         <CardContent className="p-6">
-                          <div className="text-center py-12">
+                          <div className="py-12 text-center">
                             {/* Timer Expired Warning */}
                             {isTimerExpired && (
-                              <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                              <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
                                 <div className="flex items-center justify-center space-x-3">
                                   <svg
-                                    className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0"
+                                    className="h-6 w-6 flex-shrink-0 text-yellow-600 dark:text-yellow-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -517,7 +518,7 @@ const QuizPage: NextPage = () => {
                                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
                                     />
                                   </svg>
-                                  <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium">
+                                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                                     Quiz automatically submitted due to time
                                     limit
                                   </p>
@@ -526,7 +527,7 @@ const QuizPage: NextPage = () => {
                             )}
 
                             <svg
-                              className={`w-16 h-16 ${
+                              className={`h-16 w-16 ${
                                 isTimerExpired
                                   ? "text-yellow-600 dark:text-yellow-400"
                                   : "text-green-600 dark:text-green-400"
@@ -551,31 +552,31 @@ const QuizPage: NextPage = () => {
                                 />
                               )}
                             </svg>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
                               {submitError
                                 ? "Quiz Completed (with errors)"
                                 : isTimerExpired
-                                ? "Time Expired!"
-                                : "Quiz Completed!"}
+                                  ? "Time Expired!"
+                                  : "Quiz Completed!"}
                             </h2>
-                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            <p className="mb-6 text-gray-600 dark:text-gray-400">
                               {submitError
                                 ? "Your quiz was completed but there was an error submitting to the server."
                                 : isTimerExpired
-                                ? "Your quiz was automatically submitted when the time ran out."
-                                : "Your quiz has been successfully submitted!"}
+                                  ? "Your quiz was automatically submitted when the time ran out."
+                                  : "Your quiz has been successfully submitted!"}
                             </p>
 
                             {/* Quiz Results */}
                             {quizResult && (
-                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                              <div className="mb-6 rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+                                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                                   Quiz Results
                                 </h3>
 
                                 {/* Score Display */}
-                                <div className="text-center mb-6">
-                                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900/30 border-4 border-blue-200 dark:border-blue-800">
+                                <div className="mb-6 text-center">
+                                  <div className="inline-flex h-24 w-24 items-center justify-center rounded-full border-4 border-blue-200 bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30">
                                     <div>
                                       <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">
                                         {quizResult.summary?.percentage || 0}%
@@ -588,7 +589,7 @@ const QuizPage: NextPage = () => {
                                 </div>
 
                                 {/* Statistics Grid */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
                                   <div className="text-center">
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                       {quizResult.summary?.totalQuestions || 0}
@@ -618,12 +619,12 @@ const QuizPage: NextPage = () => {
                                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                       {Math.floor(
                                         (quizResult.summary?.timeSpent || 0) /
-                                          60
+                                          60,
                                       )}
                                       :
                                       {String(
                                         (quizResult.summary?.timeSpent || 0) %
-                                          60
+                                          60,
                                       ).padStart(2, "0")}
                                     </p>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -633,15 +634,15 @@ const QuizPage: NextPage = () => {
                                 </div>
 
                                 {/* Performance Message */}
-                                <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                                  <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                <div className="rounded-lg border border-gray-200 bg-white p-4 text-center dark:border-gray-600 dark:bg-gray-800">
+                                  <p className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
                                     {getPerformanceMessage(
-                                      quizResult.summary?.percentage || 0
+                                      quizResult.summary?.percentage || 0,
                                     )}
                                   </p>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">
                                     {getPerformanceAdvice(
-                                      quizResult.summary?.percentage || 0
+                                      quizResult.summary?.percentage || 0,
                                     )}
                                   </p>
                                 </div>
@@ -649,8 +650,8 @@ const QuizPage: NextPage = () => {
                             )}
 
                             {userInfo && (
-                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6 text-left">
-                                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                              <div className="mb-6 rounded-lg bg-gray-50 p-4 text-left dark:bg-gray-700">
+                                <h3 className="mb-2 font-medium text-gray-900 dark:text-white">
                                   Quiz Information:
                                 </h3>
                                 <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
@@ -669,16 +670,16 @@ const QuizPage: NextPage = () => {
                               </div>
                             )}
 
-                            <div className="flex space-x-4 justify-center">
+                            <div className="flex justify-center space-x-4">
                               <button
                                 onClick={handleRestartQuiz}
-                                className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                                className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
                               >
                                 Take Quiz Again
                               </button>
                               <button
                                 onClick={handleGoHome}
-                                className="px-6 py-2 bg-gray-600 text-white font-medium rounded-md hover:bg-gray-700 transition-colors"
+                                className="rounded-md bg-gray-600 px-6 py-2 font-medium text-white transition-colors hover:bg-gray-700"
                               >
                                 Go Home
                               </button>
