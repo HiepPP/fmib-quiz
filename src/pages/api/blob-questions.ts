@@ -32,6 +32,10 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Debug: Log the environment variable
+  console.log('🔍 Debug - BLOB_READ_WRITE_TOKEN:', process.env.BLOB_READ_WRITE_TOKEN ? 'SET' : 'NOT SET');
+  console.log('🔍 Debug - NODE_ENV:', process.env.NODE_ENV);
+
   // Check BLOB_READ_WRITE_TOKEN
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return res.status(500).json({
