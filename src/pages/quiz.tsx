@@ -742,96 +742,128 @@ const QuizPage: NextPage = () => {
 
                             {/* Quiz Results */}
                             {quizResult && (
-                              <div className="mb-3 rounded-lg bg-gray-50 p-2 sm:mb-6 sm:p-4 lg:p-6 dark:bg-gray-700">
-                                <h3 className="mb-1.5 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-base lg:text-lg dark:text-white">
-                                  Kết quả bài trắc nghiệm
-                                </h3>
+                              <div className="mb-3 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-2 shadow-xl backdrop-blur-sm transition-all duration-500 hover:shadow-2xl dark:from-gray-900/50 dark:via-blue-900/30 dark:to-purple-900/30 dark:border dark:border-gray-700/50 sm:mb-6 sm:p-4 lg:p-6">
+                                <div className="relative">
+                                  {/* Animated background elements */}
+                                  <div className="absolute -top-4 -left-4 h-8 w-8 animate-pulse rounded-full bg-blue-400/20 blur-xl"></div>
+                                  <div className="absolute -bottom-4 -right-4 h-8 w-8 animate-pulse rounded-full bg-purple-400/20 blur-xl animation-delay-1000"></div>
+                                  <div className="absolute top-1/2 -left-2 h-4 w-4 animate-ping rounded-full bg-indigo-400/30 animation-delay-500"></div>
 
-                                {/* Score Display */}
-                                <div className="mb-3 text-center sm:mb-6">
-                                  <div className="relative inline-flex h-14 w-14 items-center justify-center rounded-full border-4 border-blue-200 bg-blue-100 sm:h-20 sm:w-20 lg:h-24 lg:w-24 dark:border-blue-800 dark:bg-blue-900/30">
-                                    <div className="absolute inset-0 animate-ping rounded-full border-4 border-blue-300 opacity-20"></div>
-                                    <div className="relative">
-                                      <p className="animate-fade-in text-base font-bold text-blue-800 sm:text-xl lg:text-2xl dark:text-blue-200">
-                                        {quizResult.summary?.percentage || 0}%
-                                      </p>
-                                      <p className="text-xs text-blue-600 dark:text-blue-400">
-                                        Điểm số
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
+                                  <h3 className="relative mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-center text-sm font-bold text-transparent sm:mb-4 sm:text-base lg:text-lg">
+                                    ✨ Kết quả bài trắc nghiệm ✨
+                                  </h3>
 
-                                {/* Statistics Grid */}
-                                <div className="mb-3 grid grid-cols-4 gap-1.5 sm:mb-6 sm:gap-4">
-                                  <div className="rounded-lg bg-gray-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                    <div className="relative">
-                                      <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100">
-                                        <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-600"></div>
+                                  {/* Score Display */}
+                                  <div className="mb-4 text-center sm:mb-6">
+                                    <div className="relative inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg sm:h-20 sm:w-20 lg:h-24 lg:w-24">
+                                      <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-blue-400 to-purple-500 opacity-50 blur-md"></div>
+                                      <div className="absolute inset-0 animate-ping rounded-full border-2 border-white/30"></div>
+                                      <div className="relative">
+                                        <p className="animate-fade-in text-base font-bold text-white drop-shadow-lg sm:text-xl lg:text-2xl">
+                                          {quizResult.summary?.percentage || 0}%
+                                        </p>
+                                        <p className="text-xs font-medium text-white/90 drop-shadow">
+                                          Điểm số
+                                        </p>
                                       </div>
-                                      <p className="relative text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
-                                        {quizResult.summary?.totalQuestions ||
-                                          0}
-                                      </p>
                                     </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Số câu hỏi
-                                    </p>
-                                  </div>
-                                  <div className="rounded-lg bg-green-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30">
-                                    <div className="relative">
-                                      <p className="text-base font-bold text-green-600 sm:text-xl lg:text-2xl dark:text-green-400">
-                                        {quizResult.summary?.correctAnswers ||
-                                          0}
-                                      </p>
+                                    {/* Score indicator badges */}
+                                    <div className="mt-2 flex justify-center space-x-1">
+                                      {(quizResult.summary?.percentage || 0) >= 90 && (
+                                        <span className="animate-bounce rounded-full bg-yellow-400 px-2 py-1 text-xs font-bold text-yellow-900 shadow-md">
+                                          🏆 Xuất sắc
+                                        </span>
+                                      )}
+                                      {(quizResult.summary?.percentage || 0) >= 70 && (quizResult.summary?.percentage || 0) < 90 && (
+                                        <span className="animate-bounce rounded-full bg-blue-400 px-2 py-1 text-xs font-bold text-blue-900 shadow-md">
+                                          🌟 Tốt
+                                        </span>
+                                      )}
+                                      {(quizResult.summary?.percentage || 0) >= 50 && (quizResult.summary?.percentage || 0) < 70 && (
+                                        <span className="animate-bounce rounded-full bg-green-400 px-2 py-1 text-xs font-bold text-green-900 shadow-md">
+                                          👍 Khá
+                                        </span>
+                                      )}
+                                      {(quizResult.summary?.percentage || 0) < 50 && (
+                                        <span className="animate-bounce rounded-full bg-orange-400 px-2 py-1 text-xs font-bold text-orange-900 shadow-md">
+                                          📚 Cố gắng
+                                        </span>
+                                      )}
                                     </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Đúng
-                                    </p>
                                   </div>
-                                  <div className="rounded-lg bg-red-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30">
-                                    <div className="relative">
-                                      <p className="text-base font-bold text-red-600 sm:text-xl lg:text-2xl dark:text-red-400">
-                                        {quizResult.summary?.incorrectAnswers ||
-                                          0}
-                                      </p>
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Sai
-                                    </p>
-                                  </div>
-                                  <div className="rounded-lg bg-blue-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30">
-                                    <div className="relative">
-                                      <p className="text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
-                                        {Math.floor(
-                                          (quizResult.summary?.timeSpent || 0) /
-                                            60,
-                                        )}
-                                        :
-                                        {String(
-                                          (quizResult.summary?.timeSpent || 0) %
-                                            60,
-                                        ).padStart(2, "0")}
-                                      </p>
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Thời gian
-                                    </p>
-                                  </div>
-                                </div>
 
-                                {/* Performance Message */}
-                                <div className="rounded-lg border border-gray-200 bg-white p-1.5 text-center sm:p-3 lg:p-4 dark:border-gray-600 dark:bg-gray-800">
-                                  <p className="mb-1 text-xs font-medium text-gray-900 sm:mb-2 sm:text-sm lg:text-lg dark:text-white">
-                                    {getPerformanceMessage(
-                                      quizResult.summary?.percentage || 0,
-                                    )}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                                    {getPerformanceAdvice(
-                                      quizResult.summary?.percentage || 0,
-                                    )}
-                                  </p>
+                                  {/* Statistics Grid */}
+                                  <div className="mb-4 grid grid-cols-2 gap-2 sm:mb-6 sm:grid-cols-4 sm:gap-3">
+                                    <div className="group relative transform overflow-hidden rounded-xl bg-white/80 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:bg-gray-800/80 dark:shadow-gray-900/50">
+                                      <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
+                                      <div className="relative">
+                                        <div className="mb-1 flex justify-center">
+                                          <div className="h-6 w-6 animate-pulse rounded-full bg-blue-400/20"></div>
+                                        </div>
+                                        <p className="text-center text-lg font-bold text-gray-900 dark:text-white">
+                                          {quizResult.summary?.totalQuestions || 0}
+                                        </p>
+                                        <p className="text-center text-xs font-medium text-gray-600 dark:text-gray-400">
+                                          Tổng câu
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-green-900/30 dark:to-green-800/30 dark:shadow-green-900/50">
+                                      <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
+                                      <div className="relative">
+                                        <div className="mb-1 flex justify-center">
+                                          <div className="h-6 w-6 animate-pulse rounded-full bg-green-400/30"></div>
+                                        </div>
+                                        <p className="text-center text-lg font-bold text-green-700 dark:text-green-300">
+                                          {quizResult.summary?.correctAnswers || 0}
+                                        </p>
+                                        <p className="text-center text-xs font-medium text-green-600 dark:text-green-400">
+                                          Đúng ✓
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-red-900/30 dark:to-red-800/30 dark:shadow-red-900/50">
+                                      <div className="absolute inset-0 bg-gradient-to-br from-red-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
+                                      <div className="relative">
+                                        <div className="mb-1 flex justify-center">
+                                          <div className="h-6 w-6 animate-pulse rounded-full bg-red-400/30"></div>
+                                        </div>
+                                        <p className="text-center text-lg font-bold text-red-700 dark:text-red-300">
+                                          {quizResult.summary?.incorrectAnswers || 0}
+                                        </p>
+                                        <p className="text-center text-xs font-medium text-red-600 dark:text-red-400">
+                                          Sai ✗
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-purple-900/30 dark:to-purple-800/30 dark:shadow-purple-900/50">
+                                      <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
+                                      <div className="relative">
+                                        <div className="mb-1 flex justify-center">
+                                          <div className="h-6 w-6 animate-pulse rounded-full bg-purple-400/30"></div>
+                                        </div>
+                                        <p className="text-center text-lg font-bold text-purple-700 dark:text-purple-300">
+                                          {Math.floor((quizResult.summary?.timeSpent || 0) / 60)}:{String((quizResult.summary?.timeSpent || 0) % 60).padStart(2, "0")}
+                                        </p>
+                                        <p className="text-center text-xs font-medium text-purple-600 dark:text-purple-400">
+                                          Thời gian ⏱
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Performance Message */}
+                                  <div className="relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-r from-white/60 to-white/40 p-3 text-center shadow-lg backdrop-blur-sm transition-all duration-500 hover:shadow-xl dark:from-gray-800/60 dark:to-gray-900/40 dark:border-gray-700/50 sm:p-4 lg:p-5">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10 animate-gradient-shift"></div>
+                                    <div className="relative">
+                                      <p className="mb-1 text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent sm:mb-2 sm:text-base lg:text-lg">
+                                        {getPerformanceMessage(quizResult.summary?.percentage || 0)}
+                                      </p>
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 italic">
+                                        &ldquo;{getPerformanceAdvice(quizResult.summary?.percentage || 0)}&rdquo;
+                                      </p>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             )}
