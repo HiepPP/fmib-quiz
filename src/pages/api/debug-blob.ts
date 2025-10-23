@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { put, list, head } from '@vercel/blob'
+import { put, list } from '@vercel/blob'
 
 export default async function handler(
   req: NextApiRequest,
@@ -18,7 +18,7 @@ export default async function handler(
   console.log('=== ENV DEBUG END ===');
 
   // Return a safe summary (no sensitive data)
-  const envSummary = {
+  const envSummary: any = {
     nodeEnv: process.env.NODE_ENV,
     blobTokenPresent: !!process.env.BLOB_READ_WRITE_TOKEN && process.env.BLOB_READ_WRITE_TOKEN.length > 0,
     totalEnvVars: Object.keys(process.env).length,
@@ -77,7 +77,7 @@ export default async function handler(
           message: 'Successfully created test file',
           details: {
             url: blob.url,
-            uploadedAt: blob.uploadedAt
+            uploadedAt: new Date().toISOString()
           }
         }
 

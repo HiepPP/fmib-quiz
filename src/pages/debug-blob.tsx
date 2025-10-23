@@ -1,6 +1,6 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Layout from '@/components/layout/Layout'
 
 interface EnvSummary {
@@ -40,7 +40,11 @@ const DebugPage: NextPage = () => {
           totalEnvVars: 0,
           sampleNonSensitive: [],
           timestamp: new Date().toISOString(),
-          tests: {},
+          tests: {
+            tokenValidation: { success: false, message: 'API Error' },
+            listTest: { success: false, message: 'API Error' },
+            putTest: { success: false, message: 'API Error' }
+          },
           recommendations: data.error ? [data.error] : [],
           error: data.error || 'API Error'
         })
@@ -56,7 +60,11 @@ const DebugPage: NextPage = () => {
         totalEnvVars: 0,
         sampleNonSensitive: [],
         timestamp: new Date().toISOString(),
-        tests: {},
+        tests: {
+          tokenValidation: { success: false, message: 'Network Error' },
+          listTest: { success: false, message: 'Network Error' },
+          putTest: { success: false, message: 'Network Error' }
+        },
         recommendations: ['Failed to connect to debug API', String(error)],
         error: 'Network error'
       })
