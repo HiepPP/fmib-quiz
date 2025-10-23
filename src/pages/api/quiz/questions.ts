@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Question } from '@/types/quiz'
-import { storage } from '@/lib/storage'
+import { blobStorage } from '@/lib/blob-storage'
 
 // Mock questions for development when localStorage is not available
 function getMockQuestions(): Question[] {
@@ -58,7 +58,7 @@ function getMockQuestions(): Question[] {
   ]
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -73,25 +73,17 @@ export default function handler(
   }
 
   try {
-    // Get questions from localStorage or use mock questions for development
+    // Get questions from blob storage
     let questions: Question[] = []
 
-    // Check if we're on server-side (no localStorage available)
-    if (typeof window === 'undefined') {
-      console.log('Server-side detected, using mock questions')
+    try {
+      console.log('Fetching questions from Vercel Blob storage...')
+      questions = await blobStorage.getQuestions()
+      console.log(`Successfully loaded ${questions.length} questions from blob storage`)
+    } catch (error) {
+      console.error('Error fetching questions from blob storage:', error)
+      console.log('Using mock questions as fallback')
       questions = getMockQuestions()
-    } else {
-      try {
-        questions = storage.getQuestions()
-        // If no questions in localStorage, use mock questions
-        if (questions.length === 0) {
-          console.log('No questions in localStorage, using mock questions')
-          questions = getMockQuestions()
-        }
-      } catch (error) {
-        console.log('Error accessing localStorage, using mock questions:', error)
-        questions = getMockQuestions()
-      }
     }
 
     // Check if questions exist
@@ -119,7 +111,7 @@ export default function handler(
 
     return res.status(200).json({
       success: true,
-      message: 'Questions retrieved successfully',
+      message: 'Questions retrieved successfully from Vercel Blob storage',
       data: {
         questions: publicQuestions,
         totalQuestions: questions.length,
@@ -127,11 +119,17 @@ export default function handler(
           timeLimit: 10, // 10 minutes
           requiresAllQuestions: true,
           allowMultipleCorrect: true
+        },
+        storageInfo: {
+          type: 'vercel-blob',
+          persistent: true,
+          description: 'Questions are stored in Vercel Blob storage and persist across deployments'
         }
       },
       meta: {
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: '2.0.0',
+        storageVersion: 'blob-storage'
       }
     })
 

@@ -1,50 +1,50 @@
-import { Question, QuizAnswer, QuizResult, UserInfo } from '@/types/quiz'
+import { Question, QuizAnswer, QuizResult, UserInfo } from "@/types/quiz";
 
 // API base configuration
-const API_BASE = '/api'
+const API_BASE = "/api";
 
 // API response interfaces
 interface ApiResponse<T = unknown> {
-  success: boolean
-  message: string
-  data?: T
-  error?: string
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: string;
   meta?: {
-    timestamp: string
-    version: string
-  }
+    timestamp: string;
+    version: string;
+  };
 }
 
 interface QuestionsResponse {
-  questions: Question[]
-  totalQuestions: number
+  questions: Question[];
+  totalQuestions: number;
   quizSettings: {
-    timeLimit: number
-    requiresAllQuestions: boolean
-    allowMultipleCorrect: boolean
-  }
+    timeLimit: number;
+    requiresAllQuestions: boolean;
+    allowMultipleCorrect: boolean;
+  };
 }
 
 interface SubmitRequest {
-  userInfo: UserInfo
-  answers: QuizAnswer[]
-  questions: Question[]
-  startTime: number
-  endTime: number
-  timeExpired?: boolean
+  userInfo: UserInfo;
+  answers: QuizAnswer[];
+  questions: Question[];
+  startTime: number;
+  endTime: number;
+  timeExpired?: boolean;
 }
 
 interface SubmitResponse {
-  result: QuizResult
+  result: QuizResult;
   summary: {
-    totalQuestions: number
-    correctAnswers: number
-    incorrectAnswers: number
-    score: number
-    percentage: number
-    timeSpent: number
-    completedAt: string
-  }
+    totalQuestions: number;
+    correctAnswers: number;
+    incorrectAnswers: number;
+    score: number;
+    percentage: number;
+    timeSpent: number;
+    completedAt: string;
+  };
 }
 
 // API error class
@@ -52,60 +52,56 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
-    public data?: unknown
+    public data?: unknown,
   ) {
-    super(message)
-    this.name = 'ApiError'
+    super(message);
+    this.name = "ApiError";
   }
 }
 
 // Utility function for making API requests
 async function apiRequest<T = unknown>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
-  const url = `${API_BASE}${endpoint}`
+  const url = `${API_BASE}${endpoint}`;
 
   const config: RequestInit = {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     },
     ...options,
-  }
+  };
 
   try {
-    const response = await fetch(url, config)
-    const data: ApiResponse<T> = await response.json()
+    const response = await fetch(url, config);
+    const data: ApiResponse<T> = await response.json();
 
     if (!response.ok) {
       throw new ApiError(
         data.message || `HTTP error! status: ${response.status}`,
         response.status,
-        data
-      )
+        data,
+      );
     }
 
     if (!data.success) {
       throw new ApiError(
-        data.error || data.message || 'API request failed',
+        data.error || data.message || "API request failed",
         response.status,
-        data
-      )
+        data,
+      );
     }
 
-    return data.data as T
+    return data.data as T;
   } catch (error) {
     if (error instanceof ApiError) {
-      throw error
+      throw error;
     }
 
     // Handle network errors or JSON parsing errors
-    throw new ApiError(
-      'Network error occurred',
-      0,
-      { originalError: error }
-    )
+    throw new ApiError("Network error occurred", 0, { originalError: error });
   }
 }
 
@@ -115,21 +111,21 @@ export const quizApi = {
    * Fetch quiz questions
    */
   async getQuestions(): Promise<QuestionsResponse> {
-    return apiRequest<QuestionsResponse>('/quiz/questions', {
-      method: 'GET',
-    })
+    return apiRequest<QuestionsResponse>("/quiz/questions", {
+      method: "GET",
+    });
   },
 
   /**
    * Submit quiz answers
    */
   async submitQuiz(submissionData: SubmitRequest): Promise<SubmitResponse> {
-    return apiRequest<SubmitResponse>('/quiz/submit', {
-      method: 'POST',
+    return apiRequest<SubmitResponse>("/quiz/submit", {
+      method: "POST",
       body: JSON.stringify(submissionData),
-    })
+    });
   },
-}
+};
 
 // Utility functions for error handling
 export const handleApiError = (error: unknown): string => {
@@ -138,44 +134,50 @@ export const handleApiError = (error: unknown): string => {
     if (error.status >= 400 && error.status < 500) {
       switch (error.status) {
         case 400:
-          return 'Invalid request. Please check your input and try again.'
+          return "Invalid request. Please check your input and try again.";
         case 404:
-          return 'The requested resource was not found.'
+          return "The requested resource was not found.";
         case 405:
-          return 'Method not allowed. Please refresh and try again.'
+          return "Method not allowed. Please refresh and try again.";
         default:
-          return error.data?.error || error.message || 'Invalid request'
+          return error.data?.error || error.message || "Invalid request";
       }
     }
 
     // Server error (5xx)
     if (error.status >= 500) {
-      return 'Server error occurred. Please try again later.'
+      return "Server error occurred. Please try again later.";
     }
 
     // Network error
     if (error.status === 0) {
-      return 'Network error. Please check your connection and try again.'
+      return "Network error. Please check your connection and try again.";
     }
 
-    return error.message || 'An unexpected error occurred'
+    return error.message || "An unexpected error occurred";
   }
 
-  return 'An unexpected error occurred'
-}
+  return "An unexpected error occurred";
+};
 
 // Type guards for API responses
-export const isQuestionsResponse = (data: unknown): data is QuestionsResponse => {
-  return data &&
-    typeof data === 'object' &&
+export const isQuestionsResponse = (
+  data: unknown,
+): data is QuestionsResponse => {
+  return (
+    data &&
+    typeof data === "object" &&
     Array.isArray(data.questions) &&
-    typeof data.totalQuestions === 'number' &&
-    typeof data.quizSettings === 'object'
-}
+    typeof data.totalQuestions === "number" &&
+    typeof data.quizSettings === "object"
+  );
+};
 
 export const isSubmitResponse = (data: unknown): data is SubmitResponse => {
-  return data &&
-    typeof data === 'object' &&
-    typeof data.result === 'object' &&
-    typeof data.summary === 'object'
-}
+  return (
+    data &&
+    typeof data === "object" &&
+    typeof data.result === "object" &&
+    typeof data.summary === "object"
+  );
+};

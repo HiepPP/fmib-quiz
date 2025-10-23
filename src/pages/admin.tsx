@@ -5,6 +5,7 @@ import Layout from '@/components/layout/Layout'
 import QuestionForm from '@/components/admin/QuestionForm'
 import QuestionList from '@/components/admin/QuestionList'
 import { Question } from '@/types/quiz'
+import { blobStorage, migrateFromLocalStorage } from '@/lib/blob-storage'
 import { storage } from '@/lib/storage'
 
 type AdminView = 'list' | 'add' | 'edit'
@@ -14,18 +15,56 @@ const AdminPage: NextPage = () => {
   const [currentView, setCurrentView] = useState<AdminView>('list')
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Load questions from localStorage on mount
+  // Load questions from blob storage on mount
   useEffect(() => {
-    const savedQuestions = storage.getQuestions()
-    setQuestions(savedQuestions)
-    setIsLoading(false)
+    const loadQuestions = async () => {
+      try {
+        setIsLoading(true)
+        const loadedQuestions = await blobStorage.getQuestions()
+        setQuestions(loadedQuestions)
+
+        // Check if we have localStorage questions to migrate
+        if (typeof window !== 'undefined') {
+          const localQuestions = storage.getQuestions()
+          if (localQuestions.length > 0 && loadedQuestions.length === 0) {
+            const migration = await migrateFromLocalStorage()
+            if (migration.success) {
+              const migratedQuestions = await blobStorage.getQuestions()
+              setQuestions(migratedQuestions)
+              alert(`✅ ${migration.message}`)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load questions:', error)
+        setSaveError('Failed to load questions. Please try refreshing the page.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadQuestions()
   }, [])
 
-  // Save questions to localStorage whenever they change
-  const saveQuestions = (updatedQuestions: Question[]) => {
-    setQuestions(updatedQuestions)
-    storage.saveQuestions(updatedQuestions)
+  // Save questions to blob storage whenever they change
+  const saveQuestions = async (updatedQuestions: Question[]) => {
+    try {
+      setIsSaving(true)
+      setSaveError(null)
+      setQuestions(updatedQuestions)
+      await blobStorage.saveQuestions(updatedQuestions)
+      console.log('✅ Questions saved successfully')
+    } catch (error) {
+      console.error('❌ Failed to save questions:', error)
+      setSaveError('Failed to save questions. Please try again.')
+      // Revert to previous state on error
+      setQuestions(questions)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleAddQuestion = () => {
@@ -38,21 +77,21 @@ const AdminPage: NextPage = () => {
     setCurrentView('edit')
   }
 
-  const handleSaveQuestion = (question: Question) => {
+  const handleSaveQuestion = async (question: Question) => {
     if (currentView === 'edit' && editingQuestion) {
       // Update existing question
-      saveQuestions(questions.map(q => q.id === question.id ? question : q))
+      await saveQuestions(questions.map(q => q.id === question.id ? question : q))
     } else {
       // Add new question
-      saveQuestions([...questions, question])
+      await saveQuestions([...questions, question])
     }
     setCurrentView('list')
     setEditingQuestion(null)
   }
 
-  const handleDeleteQuestion = (questionId: string) => {
+  const handleDeleteQuestion = async (questionId: string) => {
     if (window.confirm('Are you sure you want to delete this question?')) {
-      saveQuestions(questions.filter(q => q.id !== questionId))
+      await saveQuestions(questions.filter(q => q.id !== questionId))
     }
   }
 
@@ -73,15 +112,15 @@ const AdminPage: NextPage = () => {
     linkElement.click()
   }
 
-  const handleImportQuestions = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportQuestions = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const importedQuestions = JSON.parse(e.target?.result as string)
           if (Array.isArray(importedQuestions)) {
-            saveQuestions(importedQuestions)
+            await saveQuestions(importedQuestions)
             alert('Questions imported successfully!')
           } else {
             alert('Invalid file format. Please upload a valid questions file.')
@@ -96,9 +135,42 @@ const AdminPage: NextPage = () => {
     event.target.value = ''
   }
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (window.confirm('Are you sure you want to delete all questions? This action cannot be undone.')) {
-      saveQuestions([])
+      await saveQuestions([])
+    }
+  }
+
+  // New blob storage specific handlers
+  const handleCreateBackup = async () => {
+    try {
+      setIsSaving(true)
+      await blobStorage.createBackup(questions)
+      alert('✅ Backup created successfully!')
+    } catch (error) {
+      console.error('Failed to create backup:', error)
+      alert('❌ Failed to create backup. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleViewStorageInfo = async () => {
+    try {
+      const info = await blobStorage.getStorageInfo()
+      const message = `
+Storage Information:
+• Total Questions: ${info.totalQuestions}
+• Backups Available: ${info.backupsCount}
+• Total Storage Used: ${(info.totalSize / 1024).toFixed(2)} KB
+
+Your quiz questions are stored securely in Vercel Blob storage and will persist across deployments.
+      `.trim()
+
+      alert(message)
+    } catch (error) {
+      console.error('Failed to get storage info:', error)
+      alert('❌ Failed to retrieve storage information.')
     }
   }
 
@@ -123,28 +195,44 @@ const AdminPage: NextPage = () => {
             </div>
 
             {currentView === 'list' && (
-              <div className="flex space-x-3">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleExportQuestions}
-                  disabled={questions.length === 0}
+                  disabled={questions.length === 0 || isSaving}
                   className="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Export
                 </button>
 
-                <label className="px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors cursor-pointer">
+                <label className="px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed">
                   Import
                   <input
                     type="file"
                     accept=".json"
                     onChange={handleImportQuestions}
+                    disabled={isSaving}
                     className="hidden"
                   />
                 </label>
 
                 <button
+                  onClick={handleCreateBackup}
+                  disabled={questions.length === 0 || isSaving}
+                  className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? 'Creating...' : 'Backup'}
+                </button>
+
+                <button
+                  onClick={handleViewStorageInfo}
+                  className="px-4 py-2 bg-teal-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"
+                >
+                  Storage Info
+                </button>
+
+                <button
                   onClick={handleClearAll}
-                  disabled={questions.length === 0}
+                  disabled={questions.length === 0 || isSaving}
                   className="px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Clear All
@@ -192,14 +280,59 @@ const AdminPage: NextPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Storage Status */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Storage Type</p>
+                  <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                    Vercel Blob ✨
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Persistent across deployments
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Error Display */}
+          {saveError && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                  <p className="mt-1 text-sm text-red-700">{saveError}</p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <button
+                    onClick={() => setSaveError(null)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Main Content */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6">
               {isLoading ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+                  <div className="inline-flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading questions from Vercel Blob...</p>
+                  </div>
                 </div>
               ) : currentView === 'list' ? (
                 <QuestionList
