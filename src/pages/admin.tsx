@@ -142,29 +142,25 @@ const AdminPage: NextPage = () => {
   }
 
   // New blob storage specific handlers
-  const handleCreateBackup = async () => {
-    try {
-      setIsSaving(true)
-      await blobStorage.createBackup(questions)
-      alert('✅ Backup created successfully!')
-    } catch (error) {
-      console.error('Failed to create backup:', error)
-      alert('❌ Failed to create backup. Please try again.')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   const handleViewStorageInfo = async () => {
     try {
-      const info = await blobStorage.getStorageInfo()
+      // Call debug API to get storage info
+      const response = await fetch('/api/debug-blob')
+      const info = await response.json()
+
+      if (!response.ok) {
+        throw new Error(info.error || 'Failed to get storage info')
+      }
+
       const message = `
 Storage Information:
-• Total Questions: ${info.totalQuestions}
-• Backups Available: ${info.backupsCount}
-• Total Storage Used: ${(info.totalSize / 1024).toFixed(2)} KB
+• Environment: ${info.environment}
+• Token Configured: ${info.hasToken ? '✅ Yes' : '❌ No'}
+• Total Questions: ${info.tests.listTest?.details?.blobCount || 0} blobs found
+• Storage Type: Vercel Blob Storage
 
 Your quiz questions are stored securely in Vercel Blob storage and will persist across deployments.
+Automatic backups are created when you save questions.
       `.trim()
 
       alert(message)
@@ -215,14 +211,7 @@ Your quiz questions are stored securely in Vercel Blob storage and will persist 
                   />
                 </label>
 
-                <button
-                  onClick={handleCreateBackup}
-                  disabled={questions.length === 0 || isSaving}
-                  className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {isSaving ? 'Creating...' : 'Backup'}
-                </button>
-
+                
                 <button
                   onClick={handleViewStorageInfo}
                   className="px-4 py-2 bg-teal-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"

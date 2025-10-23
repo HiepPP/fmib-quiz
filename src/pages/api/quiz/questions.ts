@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { Question } from '@/types/quiz'
-import { blobStorage } from '@/lib/blob-storage'
+import { list } from '@vercel/blob'
 
 // Mock questions for development when localStorage is not available
 function getMockQuestions(): Question[] {
@@ -72,73 +72,114 @@ export default async function handler(
     })
   }
 
+  // Check BLOB_READ_WRITE_TOKEN
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    console.log('📝 BLOB_READ_WRITE_TOKEN not configured, using mock questions')
+    const questions = getMockQuestions()
+    return sendQuestionsResponse(res, questions, 'mock')
+  }
+
   try {
-    // Get questions from blob storage
-    let questions: Question[] = []
+    // Get questions from blob storage directly (server-side)
+    console.log('📥 Fetching questions from Vercel Blob storage...')
 
-    try {
-      console.log('Fetching questions from Vercel Blob storage...')
-      questions = await blobStorage.getQuestions()
-      console.log(`Successfully loaded ${questions.length} questions from blob storage`)
-    } catch (error) {
-      console.error('Error fetching questions from blob storage:', error)
-      console.log('Using mock questions as fallback')
+    const QUIZ_QUESTIONS_BLOB = 'quiz-questions.json'
+    const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB })
+
+    let questions: Question[]
+
+    if (blobs.length === 0) {
+      console.log('📝 No questions found in blob storage, using mock questions')
       questions = getMockQuestions()
+    } else {
+      // Get the most recent version
+      const questionsBlob = blobs[0]
+      console.log(`📥 Fetching questions from: ${questionsBlob.url}`)
+
+      const response = await fetch(questionsBlob.url)
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch questions: ${response.statusText}`)
+      }
+
+      questions = await response.json()
+
+      // Validate the loaded questions
+      if (!Array.isArray(questions) || questions.length === 0) {
+        console.warn('⚠️ Invalid questions format in blob storage, using mock questions')
+        questions = getMockQuestions()
+      } else {
+        console.log(`✅ Loaded ${questions.length} questions from blob storage`)
+      }
     }
 
-    // Check if questions exist
-    if (questions.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No quiz questions available',
-        data: {
-          questions: [],
-          totalQuestions: 0
-        }
-      })
+    return sendQuestionsResponse(res, questions, blobs.length > 0 ? 'blob' : 'mock')
+
+  } catch (error: any) {
+    console.error('❌ Error loading questions from blob storage:', error)
+
+    // Enhanced error analysis
+    if (error.message.includes('401') || error.message.includes('403')) {
+      console.error('🔑 Permission denied - Check your BLOB_READ_WRITE_TOKEN')
+    } else if (error.message.includes('404')) {
+      console.error('🏪 Blob store not found - Create a blob store in Vercel dashboard')
     }
 
-    // Transform questions for API response (remove correct answers for security)
-    const publicQuestions = questions.map(question => ({
-      id: question.id,
-      question: question.question,
-      answers: question.answers.map(answer => ({
-        id: answer.id,
-        text: answer.text
-        // Note: isCorrect is intentionally excluded for security
-      }))
-    }))
+    console.log('📝 Using mock questions as fallback')
+    const questions = getMockQuestions()
+    return sendQuestionsResponse(res, questions, 'mock')
+  }
+}
 
-    return res.status(200).json({
-      success: true,
-      message: 'Questions retrieved successfully from Vercel Blob storage',
+function sendQuestionsResponse(res: NextApiResponse, questions: Question[], source: string) {
+  // Check if questions exist
+  if (questions.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: 'No quiz questions available',
       data: {
-        questions: publicQuestions,
-        totalQuestions: questions.length,
-        quizSettings: {
-          timeLimit: 10, // 10 minutes
-          requiresAllQuestions: true,
-          allowMultipleCorrect: true
-        },
-        storageInfo: {
-          type: 'vercel-blob',
-          persistent: true,
-          description: 'Questions are stored in Vercel Blob storage and persist across deployments'
-        }
-      },
-      meta: {
-        timestamp: new Date().toISOString(),
-        version: '2.0.0',
-        storageVersion: 'blob-storage'
+        questions: [],
+        totalQuestions: 0
       }
     })
-
-  } catch (error) {
-    console.error('Error fetching quiz questions:', error)
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'Failed to retrieve quiz questions'
-    })
   }
+
+  // Transform questions for API response (remove correct answers for security)
+  const publicQuestions = questions.map(question => ({
+    id: question.id,
+    question: question.question,
+    answers: question.answers.map(answer => ({
+      id: answer.id,
+      text: answer.text
+      // Note: isCorrect is intentionally excluded for security
+    }))
+  }))
+
+  return res.status(200).json({
+    success: true,
+    message: source === 'blob'
+      ? 'Questions retrieved successfully from Vercel Blob storage'
+      : 'Questions retrieved successfully (mock data)',
+    data: {
+      questions: publicQuestions,
+      totalQuestions: questions.length,
+      quizSettings: {
+        timeLimit: 10, // 10 minutes
+        requiresAllQuestions: true,
+        allowMultipleCorrect: true
+      },
+      storageInfo: {
+        type: source === 'blob' ? 'vercel-blob' : 'mock',
+        persistent: source === 'blob',
+        description: source === 'blob'
+          ? 'Questions are stored in Vercel Blob storage and persist across deployments'
+          : 'Using mock questions for development/testing'
+      }
+    },
+    meta: {
+      timestamp: new Date().toISOString(),
+      version: '2.0.0',
+      storageVersion: source === 'blob' ? 'blob-storage' : 'mock-data'
+    }
+  })
 }

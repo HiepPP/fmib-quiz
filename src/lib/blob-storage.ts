@@ -1,4 +1,3 @@
-import { put, list, del } from '@vercel/blob';
 import { Question } from './storage';
 import { checkBlobStorageConfig, devFallbackStorage, showDevWarning } from './dev-storage';
 
@@ -7,9 +6,7 @@ if (typeof window !== 'undefined') {
   showDevWarning();
 }
 
-// Blob storage configuration
-const QUIZ_QUESTIONS_BLOB = 'quiz-questions.json';
-const QUIZ_QUESTIONS_BACKUP_PREFIX = 'quiz-questions-backup-';
+// Blob storage configuration (constants moved to API route)
 
 // Error handling utility
 class BlobStorageError extends Error {
@@ -54,7 +51,7 @@ export const blobStorage = {
   },
 
   /**
-   * Save questions to Vercel Blob storage
+   * Save questions to Vercel Blob storage (via API)
    */
   saveQuestions: async (questions: Question[]): Promise<{ url: string; uploadedAt: Date }> => {
     // Check configuration first
@@ -72,6 +69,7 @@ export const blobStorage = {
         throw new BlobStorageError(config.message);
       }
     }
+
     try {
       // Validate questions structure
       if (!Array.isArray(questions)) {
@@ -94,24 +92,32 @@ export const blobStorage = {
         }
       }
 
-      // Create backup before saving new version
-      await blobStorage.createBackup(questions);
+      console.log(`📤 Saving ${questions.length} questions via API...`);
 
-      // Save to blob storage
-      const blob = await put(QUIZ_QUESTIONS_BLOB, JSON.stringify(questions, null, 2), {
-        access: 'public',
-        contentType: 'application/json',
+      // Call API to save questions
+      const response = await fetch('/api/blob-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ questions }),
       });
 
-      console.log(`✅ Saved ${questions.length} questions to blob storage`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new BlobStorageError(result.error || result.message || 'Failed to save questions');
+      }
+
+      console.log(`✅ Successfully saved ${questions.length} questions via API`);
       return {
-        url: blob.url,
-        uploadedAt: new Date()
+        url: result.data?.url || 'api-success',
+        uploadedAt: result.data?.uploadedAt ? new Date(result.data.uploadedAt) : new Date()
       };
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('❌ Error saving questions to blob storage:', {
+      console.error('❌ Error saving questions via API:', {
         error: errorMessage,
         stack: error instanceof Error ? error.stack : undefined,
         questionsCount: questions.length,
@@ -125,18 +131,20 @@ export const blobStorage = {
         console.error('🏪 Blob store not found - Create a blob store in Vercel dashboard');
       } else if (errorMessage.includes('fetch') || errorMessage.includes('ENOTFOUND')) {
         console.error('🌐 Network error - Check your internet connection');
+      } else if (errorMessage.includes('Failed to fetch')) {
+        console.error('🌐 API request failed - Check server is running');
       }
 
       if (error instanceof BlobStorageError) {
         throw error;
       }
 
-      throw new BlobStorageError('Failed to save questions to blob storage', error as Error);
+      throw new BlobStorageError('Failed to save questions via API', error as Error);
     }
   },
 
   /**
-   * Get questions from Vercel Blob storage
+   * Get questions from Vercel Blob storage (via API)
    */
   getQuestions: async (): Promise<Question[]> => {
     // Check configuration first
@@ -152,38 +160,34 @@ export const blobStorage = {
     }
 
     try {
-      // List blobs to find our questions file
-      const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB });
+      console.log('📥 Loading questions via API...');
 
-      if (blobs.length === 0) {
-        console.log('📝 No questions found in blob storage, using default questions');
-        return getDefaultQuestions();
-      }
-
-      // Get the most recent version
-      const questionsBlob = blobs[0];
-      console.log(`📥 Fetching questions from: ${questionsBlob.url}`);
-
-      const response = await fetch(questionsBlob.url);
+      // Call API to get questions
+      const response = await fetch('/api/blob-questions', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch questions: ${response.statusText}`);
+        throw new Error(`API request failed: ${response.statusText}`);
       }
 
-      const questions: Question[] = await response.json();
+      const result = await response.json();
 
-      // Validate the loaded questions
-      if (!Array.isArray(questions) || questions.length === 0) {
-        console.warn('⚠️ Invalid questions format in blob storage, using defaults');
-        return getDefaultQuestions();
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'API returned error');
       }
 
-      console.log(`✅ Loaded ${questions.length} questions from blob storage`);
+      const questions = result.data;
+
+      console.log(`✅ Successfully loaded ${questions.length} questions via API (${result.source})`);
       return questions;
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('❌ Error loading questions from blob storage:', {
+      console.error('❌ Error loading questions via API:', {
         error: errorMessage,
         stack: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString()
@@ -196,6 +200,8 @@ export const blobStorage = {
         console.error('🏪 Blob store not found - Create a blob store in Vercel dashboard');
       } else if (errorMessage.includes('fetch') || errorMessage.includes('ENOTFOUND')) {
         console.error('🌐 Network error - Check your internet connection');
+      } else if (errorMessage.includes('Failed to fetch')) {
+        console.error('🌐 API request failed - Check server is running');
       }
 
       console.log('📝 Using default questions as fallback');
@@ -204,121 +210,29 @@ export const blobStorage = {
   },
 
   /**
-   * Delete questions from blob storage
+   * Delete questions from blob storage (via API)
    */
   deleteQuestions: async (): Promise<void> => {
     try {
-      const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB });
+      console.log('🗑️ Deleting questions via API...');
 
-      if (blobs.length > 0) {
-        await del(blobs.map(blob => blob.url));
-        console.log('🗑️ Deleted questions from blob storage');
-      }
-    } catch (error) {
-      console.error('❌ Error deleting questions from blob storage:', error);
-      throw new BlobStorageError('Failed to delete questions from blob storage', error as Error);
-    }
-  },
-
-  /**
-   * Create a backup of current questions
-   */
-  createBackup: async (questions: Question[]): Promise<void> => {
-    try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupFilename = `${QUIZ_QUESTIONS_BACKUP_PREFIX}${timestamp}.json`;
-
-      await put(backupFilename, JSON.stringify(questions, null, 2), {
-        access: 'public',
-        contentType: 'application/json',
+      const response = await fetch('/api/blob-questions', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      console.log(`💾 Created backup: ${backupFilename}`);
-    } catch (error) {
-      console.warn('⚠️ Failed to create backup:', error);
-      // Don't throw here - backup failure shouldn't stop the main operation
-    }
-  },
-
-  /**
-   * List all available backups
-   */
-  listBackups: async (): Promise<Array<{ filename: string; uploadedAt: Date; size: number }>> => {
-    try {
-      const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BACKUP_PREFIX });
-
-      return blobs.map(blob => ({
-        filename: blob.pathname,
-        uploadedAt: blob.uploadedAt,
-        size: blob.size
-      })).sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
-
-    } catch (error) {
-      console.error('❌ Error listing backups:', error);
-      return [];
-    }
-  },
-
-  /**
-   * Restore from a backup
-   */
-  restoreFromBackup: async (backupFilename: string): Promise<Question[]> => {
-    try {
-      const { blobs } = await list({ prefix: backupFilename });
-
-      if (blobs.length === 0) {
-        throw new Error(`Backup not found: ${backupFilename}`);
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || result.message || 'Failed to delete questions');
       }
 
-      const response = await fetch(blobs[0].url);
-      const questions: Question[] = await response.json();
-
-      // Save as current questions
-      await blobStorage.saveQuestions(questions);
-
-      console.log(`🔄 Restored questions from backup: ${backupFilename}`);
-      return questions;
+      console.log('✅ Successfully deleted questions via API');
 
     } catch (error) {
-      console.error('❌ Error restoring from backup:', error);
-      throw new BlobStorageError('Failed to restore from backup', error as Error);
-    }
-  },
-
-  /**
-   * Get storage information
-   */
-  getStorageInfo: async (): Promise<{
-    totalQuestions: number;
-    backupsCount: number;
-    totalSize: number;
-  }> => {
-    try {
-      const { blobs } = await list();
-
-      const mainQuestions = blobs.find(b => b.pathname === QUIZ_QUESTIONS_BLOB);
-      const backups = blobs.filter(b => b.pathname.startsWith(QUIZ_QUESTIONS_BACKUP_PREFIX));
-
-      let totalQuestions = 0;
-      if (mainQuestions) {
-        const response = await fetch(mainQuestions.url);
-        const questions: Question[] = await response.json();
-        totalQuestions = questions.length;
-      }
-
-      return {
-        totalQuestions,
-        backupsCount: backups.length,
-        totalSize: blobs.reduce((sum, blob) => sum + blob.size, 0)
-      };
-
-    } catch (error) {
-      console.error('❌ Error getting storage info:', error);
-      return {
-        totalQuestions: 0,
-        backupsCount: 0,
-        totalSize: 0
-      };
+      console.error('❌ Error deleting questions via API:', error);
+      throw new BlobStorageError('Failed to delete questions via API', error as Error);
     }
   }
 };
