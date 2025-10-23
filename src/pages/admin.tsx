@@ -5,7 +5,7 @@ import Layout from '@/components/layout/Layout'
 import QuestionForm from '@/components/admin/QuestionForm'
 import QuestionList from '@/components/admin/QuestionList'
 import { Question } from '@/types/quiz'
-import { blobStorage, migrateFromLocalStorage } from '@/lib/blob-storage'
+import { blobStorage } from '@/lib/blob-storage'
 import { storage } from '@/lib/storage'
 
 type AdminView = 'list' | 'add' | 'edit'
@@ -22,26 +22,18 @@ const AdminPage: NextPage = () => {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
+        console.log('🔄 Starting to load questions...')
         setIsLoading(true)
         const loadedQuestions = await blobStorage.getQuestions()
+        console.log('✅ Questions loaded:', loadedQuestions)
+        console.log('📊 Questions count:', loadedQuestions.length)
         setQuestions(loadedQuestions)
-
-        // Check if we have localStorage questions to migrate
-        if (typeof window !== 'undefined') {
-          const localQuestions = storage.getQuestions()
-          if (localQuestions.length > 0 && loadedQuestions.length === 0) {
-            const migration = await migrateFromLocalStorage()
-            if (migration.success) {
-              const migratedQuestions = await blobStorage.getQuestions()
-              setQuestions(migratedQuestions)
-              alert(`✅ ${migration.message}`)
-            }
-          }
-        }
+        console.log('🎯 Questions state set')
       } catch (error) {
-        console.error('Failed to load questions:', error)
+        console.error('❌ Failed to load questions:', error)
         setSaveError('Failed to load questions. Please try refreshing the page.')
       } finally {
+        console.log('🏁 Loading finished, setting isLoading to false')
         setIsLoading(false)
       }
     }
