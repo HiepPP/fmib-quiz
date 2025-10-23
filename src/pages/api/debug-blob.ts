@@ -9,36 +9,45 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const debugInfo = {
+  // Log to Vercel function logs (visible in dashboard)
+  console.log('=== ENV DEBUG START ===');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('BLOB_READ_WRITE_TOKEN present:', !!process.env.BLOB_READ_WRITE_TOKEN && process.env.BLOB_READ_WRITE_TOKEN.length > 0 ? 'YES' : 'NO (EMPTY OR MISSING)');
+  console.log('BLOB_READ_WRITE_TOKEN length:', process.env.BLOB_READ_WRITE_TOKEN ? process.env.BLOB_READ_WRITE_TOKEN.length : 0); // Length only, not value
+  console.log('All env keys (non-sensitive):', Object.keys(process.env).filter(key => !key.includes('TOKEN') && !key.includes('KEY') && !key.includes('SECRET')));
+  console.log('=== ENV DEBUG END ===');
+
+  // Return a safe summary (no sensitive data)
+  const envSummary = {
+    nodeEnv: process.env.NODE_ENV,
+    blobTokenPresent: !!process.env.BLOB_READ_WRITE_TOKEN && process.env.BLOB_READ_WRITE_TOKEN.length > 0,
+    totalEnvVars: Object.keys(process.env).length,
+    sampleNonSensitive: Object.keys(process.env).filter(key => key.startsWith('NEXT_')).slice(0, 3), // Example non-sensitive keys
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-    tokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length || 0,
-    tokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 20) || 'none',
     tests: {} as any
-  }
+  };
 
   try {
     // Test 1: Token validation
-    debugInfo.tests.tokenValidation = {
-      success: debugInfo.hasToken && debugInfo.tokenLength > 20,
-      message: debugInfo.hasToken
-        ? `Token present (${debugInfo.tokenLength} chars)`
-        : 'Token missing'
+    envSummary.tests.tokenValidation = {
+      success: envSummary.blobTokenPresent,
+      message: envSummary.blobTokenPresent
+        ? `Token present and properly configured`
+        : 'Token missing or empty'
     }
 
-    if (!debugInfo.hasToken) {
+    if (!envSummary.blobTokenPresent) {
       return res.status(400).json({
-        ...debugInfo,
+        ...envSummary,
         error: 'BLOB_READ_WRITE_TOKEN not configured',
-        recommendations: ['Add BLOB_READ_WRITE_TOKEN to environment variables']
+        recommendations: ['Add BLOB_READ_WRITE_TOKEN to environment variables in Vercel dashboard']
       })
     }
 
     // Test 2: List operation
     try {
       const result = await list()
-      debugInfo.tests.listTest = {
+      envSummary.tests.listTest = {
         success: true,
         message: `Successfully listed ${result.blobs.length} blobs`,
         details: {
@@ -47,7 +56,7 @@ export default async function handler(
         }
       }
     } catch (error: any) {
-      debugInfo.tests.listTest = {
+      envSummary.tests.listTest = {
         success: false,
         message: 'List operation failed',
         error: error.message
@@ -55,7 +64,7 @@ export default async function handler(
     }
 
     // Test 3: Put operation (only if list succeeded)
-    if (debugInfo.tests.listTest.success) {
+    if (envSummary.tests.listTest.success) {
       try {
         const testData = { test: true, timestamp: new Date().toISOString() }
         const blob = await put('debug-test.json', JSON.stringify(testData), {
@@ -63,7 +72,7 @@ export default async function handler(
           contentType: 'application/json'
         })
 
-        debugInfo.tests.putTest = {
+        envSummary.tests.putTest = {
           success: true,
           message: 'Successfully created test file',
           details: {
@@ -76,12 +85,12 @@ export default async function handler(
         try {
           const { del } = await import('@vercel/blob')
           await del(blob.url)
-          debugInfo.tests.cleanupTest = {
+          envSummary.tests.cleanupTest = {
             success: true,
             message: 'Successfully cleaned up test file'
           }
         } catch (cleanupError) {
-          debugInfo.tests.cleanupTest = {
+          envSummary.tests.cleanupTest = {
             success: false,
             message: 'Failed to cleanup test file',
             error: (cleanupError as Error).message
@@ -89,7 +98,7 @@ export default async function handler(
         }
 
       } catch (error: any) {
-        debugInfo.tests.putTest = {
+        envSummary.tests.putTest = {
           success: false,
           message: 'Put operation failed',
           error: error.message
@@ -99,30 +108,30 @@ export default async function handler(
 
     // Generate recommendations
     const recommendations = []
-    if (!debugInfo.hasToken) {
+    if (!envSummary.blobTokenPresent) {
       recommendations.push('Add BLOB_READ_WRITE_TOKEN to environment variables')
     }
-    if (!debugInfo.tests.listTest.success) {
-      if (debugInfo.tests.listTest.error?.includes('401') || debugInfo.tests.listTest.error?.includes('403')) {
+    if (!envSummary.tests.listTest.success) {
+      if (envSummary.tests.listTest.error?.includes('401') || envSummary.tests.listTest.error?.includes('403')) {
         recommendations.push('Check your BLOB_READ_WRITE_TOKEN permissions')
         recommendations.push('Regenerate the token in Vercel dashboard')
       }
-      if (debugInfo.tests.listTest.error?.includes('404')) {
+      if (envSummary.tests.listTest.error?.includes('404')) {
         recommendations.push('Create a blob store in Vercel dashboard')
       }
     }
-    if (!debugInfo.tests.putTest.success && debugInfo.tests.listTest.success) {
+    if (!envSummary.tests.putTest.success && envSummary.tests.listTest.success) {
       recommendations.push('Check write permissions for your blob store')
     }
 
-    debugInfo.recommendations = recommendations
+    envSummary.recommendations = recommendations
 
-    return res.status(200).json(debugInfo)
+    return res.status(200).json(envSummary)
 
   } catch (error: any) {
     console.error('Debug API error:', error)
     return res.status(500).json({
-      ...debugInfo,
+      ...envSummary,
       error: 'Internal server error during debug',
       details: error.message
     })

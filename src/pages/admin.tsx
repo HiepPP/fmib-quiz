@@ -1,198 +1,211 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import { useState, useEffect } from 'react'
-import Layout from '@/components/layout/Layout'
-import QuestionForm from '@/components/admin/QuestionForm'
-import QuestionList from '@/components/admin/QuestionList'
-import { Question } from '@/types/quiz'
-import { blobStorage } from '@/lib/blob-storage'
-import { storage } from '@/lib/storage'
+import type { NextPage } from "next";
+import Head from "next/head";
+import { useState, useEffect } from "react";
+import Layout from "@/components/layout/Layout";
+import QuestionForm from "@/components/admin/QuestionForm";
+import QuestionList from "@/components/admin/QuestionList";
+import { Question } from "@/types/quiz";
+import { blobStorage } from "@/lib/blob-storage";
 
-type AdminView = 'list' | 'add' | 'edit'
+type AdminView = "list" | "add" | "edit";
 
 const AdminPage: NextPage = () => {
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [currentView, setCurrentView] = useState<AdminView>('list')
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentView, setCurrentView] = useState<AdminView>("list");
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Load questions from blob storage on mount
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        console.log('🔄 Starting to load questions...')
-        setIsLoading(true)
-        const loadedQuestions = await blobStorage.getQuestions()
-        console.log('✅ Questions loaded:', loadedQuestions)
-        console.log('📊 Questions count:', loadedQuestions.length)
-        setQuestions(loadedQuestions)
-        console.log('🎯 Questions state set')
+        console.log("🔄 Starting to load questions...");
+        setIsLoading(true);
+        const loadedQuestions = await blobStorage.getQuestions();
+        console.log("✅ Questions loaded:", loadedQuestions);
+        console.log("📊 Questions count:", loadedQuestions.length);
+        setQuestions(loadedQuestions);
+        console.log("🎯 Questions state set");
       } catch (error) {
-        console.error('❌ Failed to load questions:', error)
-        setSaveError('Failed to load questions. Please try refreshing the page.')
+        console.error("❌ Failed to load questions:", error);
+        setSaveError(
+          "Failed to load questions. Please try refreshing the page.",
+        );
       } finally {
-        console.log('🏁 Loading finished, setting isLoading to false')
-        setIsLoading(false)
+        console.log("🏁 Loading finished, setting isLoading to false");
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadQuestions()
-  }, [])
+    loadQuestions();
+  }, []);
 
   // Save questions to blob storage whenever they change
   const saveQuestions = async (updatedQuestions: Question[]) => {
     try {
-      setIsSaving(true)
-      setSaveError(null)
-      setQuestions(updatedQuestions)
-      await blobStorage.saveQuestions(updatedQuestions)
-      console.log('✅ Questions saved successfully')
+      setIsSaving(true);
+      setSaveError(null);
+      setQuestions(updatedQuestions);
+      await blobStorage.saveQuestions(updatedQuestions);
+      console.log("✅ Questions saved successfully");
     } catch (error) {
-      console.error('❌ Failed to save questions:', error)
-      setSaveError('Failed to save questions. Please try again.')
+      console.error("❌ Failed to save questions:", error);
+      setSaveError("Failed to save questions. Please try again.");
       // Revert to previous state on error
-      setQuestions(questions)
+      setQuestions(questions);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleAddQuestion = () => {
-    setEditingQuestion(null)
-    setCurrentView('add')
-  }
+    setEditingQuestion(null);
+    setCurrentView("add");
+  };
 
   const handleEditQuestion = (question: Question) => {
-    setEditingQuestion(question)
-    setCurrentView('edit')
-  }
+    setEditingQuestion(question);
+    setCurrentView("edit");
+  };
 
   const handleSaveQuestion = async (question: Question) => {
-    if (currentView === 'edit' && editingQuestion) {
+    if (currentView === "edit" && editingQuestion) {
       // Update existing question
-      await saveQuestions(questions.map(q => q.id === question.id ? question : q))
+      await saveQuestions(
+        questions.map((q) => (q.id === question.id ? question : q)),
+      );
     } else {
       // Add new question
-      await saveQuestions([...questions, question])
+      await saveQuestions([...questions, question]);
     }
-    setCurrentView('list')
-    setEditingQuestion(null)
-  }
+    setCurrentView("list");
+    setEditingQuestion(null);
+  };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    if (window.confirm('Are you sure you want to delete this question?')) {
-      await saveQuestions(questions.filter(q => q.id !== questionId))
+    if (window.confirm("Are you sure you want to delete this question?")) {
+      await saveQuestions(questions.filter((q) => q.id !== questionId));
     }
-  }
+  };
 
   const handleCancel = () => {
-    setCurrentView('list')
-    setEditingQuestion(null)
-  }
+    setCurrentView("list");
+    setEditingQuestion(null);
+  };
 
   const handleExportQuestions = () => {
-    const dataStr = JSON.stringify(questions, null, 2)
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
+    const dataStr = JSON.stringify(questions, null, 2);
+    const dataUri =
+      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
-    const exportFileDefaultName = `quiz-questions-${new Date().toISOString().split('T')[0]}.json`
+    const exportFileDefaultName = `quiz-questions-${new Date().toISOString().split("T")[0]}.json`;
 
-    const linkElement = document.createElement('a')
-    linkElement.setAttribute('href', dataUri)
-    linkElement.setAttribute('download', exportFileDefaultName)
-    linkElement.click()
-  }
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", dataUri);
+    linkElement.setAttribute("download", exportFileDefaultName);
+    linkElement.click();
+  };
 
-  const handleImportQuestions = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const handleImportQuestions = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = async (e) => {
         try {
-          const importedQuestions = JSON.parse(e.target?.result as string)
+          const importedQuestions = JSON.parse(e.target?.result as string);
           if (Array.isArray(importedQuestions)) {
-            await saveQuestions(importedQuestions)
-            alert('Questions imported successfully!')
+            await saveQuestions(importedQuestions);
+            alert("Questions imported successfully!");
           } else {
-            alert('Invalid file format. Please upload a valid questions file.')
+            alert("Invalid file format. Please upload a valid questions file.");
           }
         } catch (error) {
-          alert('Error importing questions. Please check the file format.')
+          alert("Error importing questions. Please check the file format.");
         }
-      }
-      reader.readAsText(file)
+      };
+      reader.readAsText(file);
     }
     // Reset the input
-    event.target.value = ''
-  }
+    event.target.value = "";
+  };
 
   const handleClearAll = async () => {
-    if (window.confirm('Are you sure you want to delete all questions? This action cannot be undone.')) {
-      await saveQuestions([])
+    if (
+      window.confirm(
+        "Are you sure you want to delete all questions? This action cannot be undone.",
+      )
+    ) {
+      await saveQuestions([]);
     }
-  }
+  };
 
   // New blob storage specific handlers
   const handleViewStorageInfo = async () => {
     try {
       // Call debug API to get storage info
-      const response = await fetch('/api/debug-blob')
-      const info = await response.json()
+      const response = await fetch("/api/debug-blob");
+      const info = await response.json();
 
       if (!response.ok) {
-        throw new Error(info.error || 'Failed to get storage info')
+        throw new Error(info.error || "Failed to get storage info");
       }
 
       const message = `
 Storage Information:
 • Environment: ${info.environment}
-• Token Configured: ${info.hasToken ? '✅ Yes' : '❌ No'}
+• Token Configured: ${info.hasToken ? "✅ Yes" : "❌ No"}
 • Total Questions: ${info.tests.listTest?.details?.blobCount || 0} blobs found
 • Storage Type: Vercel Blob Storage
 
 Your quiz questions are stored securely in Vercel Blob storage and will persist across deployments.
 Automatic backups are created when you save questions.
-      `.trim()
+      `.trim();
 
-      alert(message)
+      alert(message);
     } catch (error) {
-      console.error('Failed to get storage info:', error)
-      alert('❌ Failed to retrieve storage information.')
+      console.error("Failed to get storage info:", error);
+      alert("❌ Failed to retrieve storage information.");
     }
-  }
+  };
 
   return (
     <>
       <Head>
         <title>Quiz Admin - FMIB Quiz</title>
-        <meta name="description" content="Admin interface for managing quiz questions" />
+        <meta
+          name="description"
+          content="Admin interface for managing quiz questions"
+        />
       </Head>
 
       <Layout title="Quiz Admin">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 Quiz Admin Panel
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Manage your quiz questions and answers
               </p>
             </div>
 
-            {currentView === 'list' && (
+            {currentView === "list" && (
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleExportQuestions}
                   disabled={questions.length === 0 || isSaving}
-                  className="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   Export
                 </button>
 
-                <label className="px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed">
+                <label className="cursor-pointer rounded-md bg-purple-600 px-4 py-2 font-medium text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-400">
                   Import
                   <input
                     type="file"
@@ -203,10 +216,9 @@ Automatic backups are created when you save questions.
                   />
                 </label>
 
-                
                 <button
                   onClick={handleViewStorageInfo}
-                  className="px-4 py-2 bg-teal-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"
+                  className="rounded-md bg-teal-600 px-4 py-2 font-medium text-white transition-colors hover:bg-teal-700"
                 >
                   Storage Info
                 </button>
@@ -214,14 +226,14 @@ Automatic backups are created when you save questions.
                 <button
                   onClick={handleClearAll}
                   disabled={questions.length === 0 || isSaving}
-                  className="px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   Clear All
                 </button>
 
                 <button
                   onClick={handleAddQuestion}
-                  className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                  className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
                 >
                   Add Question
                 </button>
@@ -230,20 +242,26 @@ Automatic backups are created when you save questions.
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Questions</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{questions.length}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Total Questions
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {questions.length}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Answers</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Total Answers
+                  </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {questions.reduce((sum, q) => sum + q.answers.length, 0)}
                   </p>
@@ -251,26 +269,30 @@ Automatic backups are created when you save questions.
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ready for Quiz</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Ready for Quiz
+                  </p>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {questions.length > 0 ? 'Yes' : 'No'}
+                    {questions.length > 0 ? "Yes" : "No"}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Storage Status */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
               <div className="flex items-center">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Storage Type</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Storage Type
+                  </p>
                   <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
                     Vercel Blob ✨
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Persistent across deployments
                   </p>
                 </div>
@@ -280,11 +302,19 @@ Automatic backups are created when you save questions.
 
           {/* Error Display */}
           {saveError && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5 text-red-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="ml-3">
@@ -296,8 +326,16 @@ Automatic backups are created when you save questions.
                     onClick={() => setSaveError(null)}
                     className="text-red-500 hover:text-red-700"
                   >
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -306,16 +344,18 @@ Automatic backups are created when you save questions.
           )}
 
           {/* Main Content */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div className="p-6">
               {isLoading ? (
-                <div className="text-center py-12">
+                <div className="py-12 text-center">
                   <div className="inline-flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading questions from Vercel Blob...</p>
+                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Loading questions from Vercel Blob...
+                    </p>
                   </div>
                 </div>
-              ) : currentView === 'list' ? (
+              ) : currentView === "list" ? (
                 <QuestionList
                   questions={questions}
                   onEdit={handleEditQuestion}
@@ -323,8 +363,10 @@ Automatic backups are created when you save questions.
                 />
               ) : (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
-                    {currentView === 'edit' ? 'Edit Question' : 'Add New Question'}
+                  <h2 className="mb-6 text-xl font-semibold text-gray-800 dark:text-white">
+                    {currentView === "edit"
+                      ? "Edit Question"
+                      : "Add New Question"}
                   </h2>
                   <QuestionForm
                     question={editingQuestion || undefined}
@@ -338,7 +380,7 @@ Automatic backups are created when you save questions.
         </div>
       </Layout>
     </>
-  )
-}
+  );
+};
 
-export default AdminPage
+export default AdminPage;
