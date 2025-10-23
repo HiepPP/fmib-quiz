@@ -52,7 +52,9 @@ const QuizPage: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [quizResult, setQuizResult] = useState<QuizServiceResponse['data'] | null>(null);
+  const [quizResult, setQuizResult] = useState<
+    QuizServiceResponse["data"] | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(
@@ -409,24 +411,7 @@ const QuizPage: NextPage = () => {
               <header
                 className="mb-6 text-center sm:mb-8 lg:mb-10"
                 role="banner"
-              >
-                {/* <FadeIn>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                    FMIB Quiz
-                  </h1>
-                  {userInfo && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                      Welcome,{" "}
-                      <span
-                        className="font-medium"
-                        aria-label={`User name: ${userInfo.name}`}
-                      >
-                        {userInfo.name}
-                      </span>
-                    </p>
-                  )}
-                </FadeIn> */}
-              </header>
+              ></header>
 
               {/* Step content */}
               <FadeIn delay={200}>
@@ -733,7 +718,7 @@ const QuizPage: NextPage = () => {
                                       <div className="relative animate-bounce">
                                         <button
                                           onClick={handleViewCertificate}
-                                          className="relative w-full transform rounded-xl bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 px-10 py-4 font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-3xl hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 focus:outline-none focus:ring-4 focus:ring-yellow-300/50"
+                                          className="hover:shadow-3xl relative w-full transform rounded-xl bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 px-10 py-4 font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 focus:ring-4 focus:ring-yellow-300/50 focus:outline-none"
                                         >
                                           <span className="flex items-center justify-center space-x-3">
                                             <svg
@@ -749,7 +734,9 @@ const QuizPage: NextPage = () => {
                                                 d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
                                               />
                                             </svg>
-                                            <span className="text-lg">View Your Certificate</span>
+                                            <span className="text-lg">
+                                              View Your Certificate
+                                            </span>
                                           </span>
                                           {/* Badge indicator */}
                                           <div className="absolute -top-2 -right-2 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
@@ -761,7 +748,8 @@ const QuizPage: NextPage = () => {
 
                                     {/* Spotlight subtitle */}
                                     <p className="mt-4 text-center text-sm font-medium text-gray-600 dark:text-gray-400">
-                                      🎉 Congratulations! You have earned your certificate
+                                      🎉 Congratulations! You have earned your
+                                      certificate
                                     </p>
                                   </div>
                                 </div>
