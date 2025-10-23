@@ -173,6 +173,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     const blob = await put(QUIZ_QUESTIONS_BLOB, JSON.stringify(questions, null, 2), {
       access: 'public',
       contentType: 'application/json',
+      allowOverwrite: true,
     })
 
     console.log(`✅ Saved ${questions.length} questions to blob storage`)
@@ -181,7 +182,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       message: `Successfully saved ${questions.length} questions`,
       data: {
         url: blob.url,
-        uploadedAt: blob.uploadedAt
+        uploadedAt: new Date().toISOString()
       }
     })
 
