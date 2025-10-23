@@ -405,11 +405,11 @@ const QuizPage: NextPage = () => {
 
       <Layout title="FMIB Quiz">
         <PageTransition>
-          <div className="flex-1 py-4 sm:py-6 lg:py-8">
-            <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex-1 py-1 sm:py-0 lg:py-4">
+            <div className="container mx-auto max-w-4xl px-2 sm:px-3 lg:px-6">
               {/* Header */}
               <header
-                className="mb-6 text-center sm:mb-8 lg:mb-10"
+                className="mb-2 text-center sm:mb-3 lg:mb-6"
                 role="banner"
               ></header>
 
@@ -423,7 +423,10 @@ const QuizPage: NextPage = () => {
               <FadeIn delay={200}>
                 {currentStep === "quiz" && (
                   <div>
-                    <main className="mx-auto max-w-4xl" role="main">
+                    <main
+                      className="mx-auto max-w-full px-1 sm:max-w-3xl lg:max-w-4xl"
+                      role="main"
+                    >
                       {/* Simple Timer (hidden but functional to keep timeRemaining updated) */}
                       {sessionStartTime && (
                         <div className="hidden">
@@ -497,10 +500,10 @@ const QuizPage: NextPage = () => {
                       )}
                       {/* Submit Error Alert */}
                       {submitError && (
-                        <div className="mx-auto mt-6 max-w-md">
+                        <div className="mx-auto mt-3 max-w-md">
                           <SlideIn direction="up">
                             <Alert variant="error" title="Submission Error">
-                              <div className="space-y-2">
+                              <div className="space-y-1">
                                 <p className="text-sm">{submitError}</p>
                                 <p className="text-xs opacity-80">
                                   Your quiz has been saved locally. You can try
@@ -513,7 +516,7 @@ const QuizPage: NextPage = () => {
                       )}
                       {/* End Quiz Button */}
                       {!isSubmitting && (
-                        <div className="mt-6 text-center">
+                        <div className="mt-3 text-center">
                           <Button
                             onClick={handleRestartQuiz}
                             variant="ghost"
@@ -534,14 +537,14 @@ const QuizPage: NextPage = () => {
                   <div className="mx-auto max-w-2xl">
                     <SlideIn direction="up" delay={100}>
                       <Card variant="elevated">
-                        <CardContent className="p-6">
-                          <div className="py-12 text-center">
+                        <CardContent className="p-2 sm:p-3 lg:p-6">
+                          <div className="py-4 text-center sm:py-6 lg:py-12">
                             {/* Timer Expired Warning */}
                             {isTimerExpired && (
-                              <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
-                                <div className="flex items-center justify-center space-x-3">
+                              <div className="mb-2 rounded-lg border border-yellow-200 bg-yellow-50 p-1.5 sm:mb-4 sm:p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
+                                <div className="flex items-center justify-center space-x-1.5">
                                   <svg
-                                    className="h-6 w-6 flex-shrink-0 text-yellow-600 dark:text-yellow-400"
+                                    className="h-4 w-4 flex-shrink-0 text-yellow-600 dark:text-yellow-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -553,7 +556,7 @@ const QuizPage: NextPage = () => {
                                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
                                     />
                                   </svg>
-                                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                  <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200">
                                     Quiz automatically submitted due to time
                                     limit
                                   </p>
@@ -562,11 +565,11 @@ const QuizPage: NextPage = () => {
                             )}
 
                             <svg
-                              className={`h-16 w-16 ${
+                              className={`h-10 w-10 sm:h-14 sm:w-14 lg:h-16 lg:w-16 ${
                                 isTimerExpired
                                   ? "text-yellow-600 dark:text-yellow-400"
                                   : "text-green-600 dark:text-green-400"
-                              } mx-auto mb-4`}
+                              } mx-auto mb-2 sm:mb-4`}
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -587,14 +590,14 @@ const QuizPage: NextPage = () => {
                                 />
                               )}
                             </svg>
-                            <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+                            <h2 className="mb-1 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl lg:text-2xl dark:text-white">
                               {submitError
                                 ? "Quiz Completed (with errors)"
                                 : isTimerExpired
                                   ? "Time Expired!"
                                   : "Quiz Completed!"}
                             </h2>
-                            <p className="mb-6 text-gray-600 dark:text-gray-400">
+                            <p className="mb-3 text-xs text-gray-600 sm:mb-6 sm:text-sm dark:text-gray-400">
                               {submitError
                                 ? "Your quiz was completed but there was an error submitting to the server."
                                 : isTimerExpired
@@ -604,16 +607,16 @@ const QuizPage: NextPage = () => {
 
                             {/* Quiz Results */}
                             {quizResult && (
-                              <div className="mb-6 rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
-                                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+                              <div className="mb-3 rounded-lg bg-gray-50 p-2 sm:mb-6 sm:p-4 lg:p-6 dark:bg-gray-700">
+                                <h3 className="mb-1.5 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-base lg:text-lg dark:text-white">
                                   Quiz Results
                                 </h3>
 
                                 {/* Score Display */}
-                                <div className="mb-6 text-center">
-                                  <div className="inline-flex h-24 w-24 items-center justify-center rounded-full border-4 border-blue-200 bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30">
+                                <div className="mb-3 text-center sm:mb-6">
+                                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-full border-4 border-blue-200 bg-blue-100 sm:h-20 sm:w-20 lg:h-24 lg:w-24 dark:border-blue-800 dark:bg-blue-900/30">
                                     <div>
-                                      <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">
+                                      <p className="text-base font-bold text-blue-800 sm:text-xl lg:text-2xl dark:text-blue-200">
                                         {quizResult.summary?.percentage || 0}%
                                       </p>
                                       <p className="text-xs text-blue-600 dark:text-blue-400">
@@ -624,34 +627,34 @@ const QuizPage: NextPage = () => {
                                 </div>
 
                                 {/* Statistics Grid */}
-                                <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+                                <div className="mb-3 grid grid-cols-4 gap-1.5 sm:mb-6 sm:gap-4">
                                   <div className="text-center">
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    <p className="text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
                                       {quizResult.summary?.totalQuestions || 0}
                                     </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      Questions
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                      Qs
                                     </p>
                                   </div>
                                   <div className="text-center">
-                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                    <p className="text-base font-bold text-green-600 sm:text-xl lg:text-2xl dark:text-green-400">
                                       {quizResult.summary?.correctAnswers || 0}
                                     </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
                                       Correct
                                     </p>
                                   </div>
                                   <div className="text-center">
-                                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                    <p className="text-base font-bold text-red-600 sm:text-xl lg:text-2xl dark:text-red-400">
                                       {quizResult.summary?.incorrectAnswers ||
                                         0}
                                     </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      Incorrect
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                      Wrong
                                     </p>
                                   </div>
                                   <div className="text-center">
-                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    <p className="text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
                                       {Math.floor(
                                         (quizResult.summary?.timeSpent || 0) /
                                           60,
@@ -662,20 +665,20 @@ const QuizPage: NextPage = () => {
                                           60,
                                       ).padStart(2, "0")}
                                     </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      Time Spent
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                      Time
                                     </p>
                                   </div>
                                 </div>
 
                                 {/* Performance Message */}
-                                <div className="rounded-lg border border-gray-200 bg-white p-4 text-center dark:border-gray-600 dark:bg-gray-800">
-                                  <p className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+                                <div className="rounded-lg border border-gray-200 bg-white p-1.5 text-center sm:p-3 lg:p-4 dark:border-gray-600 dark:bg-gray-800">
+                                  <p className="mb-1 text-xs font-medium text-gray-900 sm:mb-2 sm:text-sm lg:text-lg dark:text-white">
                                     {getPerformanceMessage(
                                       quizResult.summary?.percentage || 0,
                                     )}
                                   </p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">
                                     {getPerformanceAdvice(
                                       quizResult.summary?.percentage || 0,
                                     )}
@@ -685,87 +688,79 @@ const QuizPage: NextPage = () => {
                             )}
 
                             {userInfo && (
-                              <div className="mb-8 rounded-lg bg-gray-50 p-4 text-left dark:bg-gray-700">
-                                <h3 className="mb-2 font-medium text-gray-900 dark:text-white">
+                              <div className="mb-3 rounded-lg bg-gray-50 p-1.5 text-left sm:mb-6 sm:p-3 lg:mb-8 lg:p-4 dark:bg-gray-700">
+                                <h3 className="mb-1 text-xs font-medium text-gray-900 sm:mb-2 sm:text-sm dark:text-white">
                                   Quiz Information:
                                 </h3>
-                                <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                                <div className="space-y-0.5 text-xs text-gray-600 dark:text-gray-400">
                                   <p>
                                     <strong>Name:</strong> {userInfo.name}
                                   </p>
                                   <p>
-                                    <strong>Student Number:</strong>{" "}
+                                    <strong>Student #:</strong>{" "}
                                     {userInfo.studentNumber}
                                   </p>
                                   <p>
-                                    <strong>Class Number:</strong>{" "}
+                                    <strong>Class #:</strong>{" "}
                                     {userInfo.classNumber}
                                   </p>
                                 </div>
                               </div>
                             )}
 
-                            {/* Spotlight Certificate Button Section */}
+                            {/* Certificate Button Section */}
                             {quizResult &&
                               (quizResult.summary?.percentage || 0) >= 60 && (
-                                <div className="mb-8">
-                                  <div className="mx-auto max-w-md">
-                                    <div className="relative animate-pulse">
-                                      {/* Glow effect background */}
-                                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-yellow-400/20 to-orange-500/20 blur-xl"></div>
-
-                                      {/* Certificate button with enhanced styling */}
-                                      <div className="relative animate-bounce">
-                                        <button
-                                          onClick={handleViewCertificate}
-                                          className="hover:shadow-3xl relative w-full transform rounded-xl bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 px-10 py-4 font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 focus:ring-4 focus:ring-yellow-300/50 focus:outline-none"
+                                <div className="mb-4 sm:mb-8">
+                                  <div className="mx-auto max-w-full sm:max-w-xs">
+                                    {/* Certificate button optimized for mobile */}
+                                    <button
+                                      onClick={handleViewCertificate}
+                                      className="relative w-full transform rounded-lg bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 px-3 py-2.5 font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 hover:shadow-xl focus:ring-2 focus:ring-yellow-300/50 focus:outline-none active:scale-100 sm:px-4 sm:py-3 lg:px-8 lg:py-4"
+                                    >
+                                      <span className="flex items-center justify-center space-x-1.5 sm:space-x-2 lg:space-x-3">
+                                        <svg
+                                          className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-6 lg:h-8 lg:w-8"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
                                         >
-                                          <span className="flex items-center justify-center space-x-3">
-                                            <svg
-                                              className="h-8 w-8 flex-shrink-0"
-                                              fill="none"
-                                              stroke="currentColor"
-                                              viewBox="0 0 24 24"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                                              />
-                                            </svg>
-                                            <span className="text-lg">
-                                              View Your Certificate
-                                            </span>
-                                          </span>
-                                          {/* Badge indicator */}
-                                          <div className="absolute -top-2 -right-2 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
-                                            🏆
-                                          </div>
-                                        </button>
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                                          />
+                                        </svg>
+                                        <span className="text-xs sm:text-sm lg:text-lg">
+                                          Certificate
+                                        </span>
+                                      </span>
+                                      {/* Badge indicator */}
+                                      <div className="absolute -top-1 -right-1 rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md sm:-top-1.5 sm:-right-1.5 sm:px-2 sm:py-1">
+                                        🏆
                                       </div>
-                                    </div>
+                                    </button>
 
-                                    {/* Spotlight subtitle */}
-                                    <p className="mt-4 text-center text-sm font-medium text-gray-600 dark:text-gray-400">
-                                      🎉 Congratulations! You have earned your
-                                      certificate
+                                    {/* Congratulations subtitle */}
+                                    <p className="mt-1.5 text-center text-xs text-gray-600 sm:mt-4 dark:text-gray-400">
+                                      🎉 You earned your certificate!
                                     </p>
                                   </div>
                                 </div>
                               )}
 
                             {/* Secondary actions */}
-                            <div className="flex justify-center space-x-4">
+                            <div className="flex flex-col justify-center gap-2 sm:flex-row sm:gap-4">
                               <button
                                 onClick={handleRestartQuiz}
-                                className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+                                className="w-full rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-blue-700 active:bg-blue-800 sm:w-auto sm:px-6 sm:text-sm"
                               >
                                 Take Quiz Again
                               </button>
                               <button
                                 onClick={handleGoHome}
-                                className="rounded-md bg-gray-600 px-6 py-2 font-medium text-white transition-colors hover:bg-gray-700"
+                                className="w-full rounded-md bg-gray-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-gray-700 active:bg-gray-800 sm:w-auto sm:px-6 sm:text-sm"
                               >
                                 Go Home
                               </button>

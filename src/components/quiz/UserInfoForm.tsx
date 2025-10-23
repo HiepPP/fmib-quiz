@@ -127,16 +127,15 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-3 sm:p-4 dark:from-gray-900 dark:via-slate-800 dark:to-indigo-900">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-purple-400/10 to-pink-400/10 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20"></div>
-
       <div className="relative w-full max-w-lg">
-        <div className="hover:shadow-3xl relative rounded-2xl sm:rounded-3xl border border-white/20 bg-white/90 p-4 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl transition-all duration-500 dark:border-gray-700/30 dark:bg-gray-900/90">
+        <div className="hover:shadow-3xl relative rounded-2xl border border-white/20 bg-white/90 p-4 shadow-2xl backdrop-blur-xl transition-all duration-500 sm:rounded-3xl sm:p-6 md:p-8 dark:border-gray-700/30 dark:bg-gray-900/90">
           {/* Compact Header for mobile */}
-          <div className="mb-4 sm:mb-6 md:mb-8 text-center">
-            <div className="relative mb-3 sm:mb-4 md:mb-6 inline-flex items-center justify-center">
-              <div className="absolute -inset-1 sm:-inset-2 animate-pulse rounded-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-30 blur-lg"></div>
-              <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 transform items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-6">
+          <div className="mb-4 text-center sm:mb-6 md:mb-8">
+            <div className="relative mb-3 inline-flex items-center justify-center sm:mb-4 md:mb-6">
+              <div className="absolute -inset-1 animate-pulse rounded-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-30 blur-lg sm:-inset-2"></div>
+              <div className="relative flex h-12 w-12 transform items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-6 sm:h-14 sm:w-14 md:h-16 md:w-16">
                 <svg
-                  className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-white"
+                  className="h-5 w-5 text-white sm:h-6 sm:w-6 md:h-8 md:w-8"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -151,44 +150,77 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
               </div>
             </div>
 
-            <h1 className="animate-gradient mb-2 sm:mb-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-2xl sm:text-3xl md:text-4xl font-bold text-transparent">
+            <h1 className="animate-gradient mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-2xl font-bold text-transparent sm:mb-3 sm:text-3xl md:text-4xl">
               Chuyện Nghề Gen Z
             </h1>
 
-            <p className="mx-auto mb-3 sm:mb-4 md:mb-6 max-w-xs text-xs sm:text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+            <p className="mx-auto mb-3 max-w-xs text-xs leading-relaxed text-gray-600 sm:mb-4 sm:text-sm md:mb-6 dark:text-gray-300">
               Khám phá kiến thức về thế hệ Gen Z và chuẩn bị cho tương lai số
             </p>
 
             {/* Compact badges */}
-            <div className="flex justify-center gap-2 sm:gap-3 mb-4 sm:mb-6 md:mb-8">
-              <span className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-full transition-transform hover:scale-105">
-                <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className="mb-4 flex justify-center gap-2 sm:mb-6 sm:gap-3 md:mb-8">
+              <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 transition-transform hover:scale-105 sm:px-3 sm:py-1.5 dark:bg-blue-900/40 dark:text-blue-300">
+                <svg
+                  className="mr-1 h-2.5 w-2.5 sm:mr-1.5 sm:h-3 sm:w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 10 phút
               </span>
-              <span className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded-full transition-transform hover:scale-105">
-                <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700 transition-transform hover:scale-105 sm:px-3 sm:py-1.5 dark:bg-purple-900/40 dark:text-purple-300">
+                <svg
+                  className="mr-1 h-2.5 w-2.5 sm:mr-1.5 sm:h-3 sm:w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
                 </svg>
                 20 câu
               </span>
-              <span className="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 text-xs font-semibold rounded-full transition-transform hover:scale-105">
-                <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <span className="inline-flex items-center rounded-full bg-pink-100 px-2 py-1 text-xs font-semibold text-pink-700 transition-transform hover:scale-105 sm:px-3 sm:py-1.5 dark:bg-pink-900/40 dark:text-pink-300">
+                <svg
+                  className="mr-1 h-2.5 w-2.5 sm:mr-1.5 sm:h-3 sm:w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 Trắc nghiệm
               </span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 md:space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-3 sm:space-y-4 md:space-y-5"
+          >
             {/* Two column layout on larger screens */}
             <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
               <div className="space-y-1.5 sm:space-y-2">
                 <label
                   htmlFor="name"
-                  className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="block text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300"
                 >
                   Họ và tên <span className="text-red-500">*</span>
                 </label>
@@ -198,7 +230,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                   name="name"
                   autoComplete="name"
                   required
-                  className={`w-full rounded-lg sm:rounded-xl border bg-gray-50 px-3 py-2 sm:px-4 sm:py-3 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:bg-gray-800/50 dark:text-white text-sm ${
+                  className={`w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:rounded-xl sm:px-4 sm:py-3 dark:bg-gray-800/50 dark:text-white ${
                     errors.name
                       ? "border-red-500 bg-red-50 dark:bg-red-900/20"
                       : "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500"
@@ -232,7 +264,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
               <div className="space-y-1.5 sm:space-y-2">
                 <label
                   htmlFor="classNumber"
-                  className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="block text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300"
                 >
                   Lớp <span className="text-red-500">*</span>
                 </label>
@@ -242,7 +274,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                   name="classNumber"
                   autoComplete="off"
                   required
-                  className={`w-full rounded-lg sm:rounded-xl border bg-gray-50 px-3 py-2 sm:px-4 sm:py-3 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:bg-gray-800/50 dark:text-white text-sm ${
+                  className={`w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:rounded-xl sm:px-4 sm:py-3 dark:bg-gray-800/50 dark:text-white ${
                     errors.classNumber
                       ? "border-red-500 bg-red-50 dark:bg-red-900/20"
                       : "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500"
@@ -277,7 +309,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
             <div className="space-y-1.5 sm:space-y-2">
               <label
                 htmlFor="studentNumber"
-                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="block text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300"
               >
                 Mã số sinh viên <span className="text-red-500">*</span>
               </label>
@@ -287,7 +319,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                 name="studentNumber"
                 autoComplete="off"
                 required
-                className={`w-full rounded-lg sm:rounded-xl border bg-gray-50 px-3 py-2 sm:px-4 sm:py-3 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:bg-gray-800/50 dark:text-white text-sm ${
+                className={`w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:rounded-xl sm:px-4 sm:py-3 dark:bg-gray-800/50 dark:text-white ${
                   errors.studentNumber
                     ? "border-red-500 bg-red-50 dark:bg-red-900/20"
                     : "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500"
@@ -321,7 +353,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
             <div className="space-y-1.5 sm:space-y-2">
               <label
                 htmlFor="major"
-                className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="block text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300"
               >
                 Ngành học <span className="text-red-500">*</span>
               </label>
@@ -331,7 +363,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                 name="major"
                 autoComplete="off"
                 required
-                className={`w-full rounded-lg sm:rounded-xl border bg-gray-50 px-3 py-2 sm:px-4 sm:py-3 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:bg-gray-800/50 dark:text-white text-sm ${
+                className={`w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:rounded-xl sm:px-4 sm:py-3 dark:bg-gray-800/50 dark:text-white ${
                   errors.major
                     ? "border-red-500 bg-red-50 dark:bg-red-900/20"
                     : "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500"
@@ -366,14 +398,14 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group relative w-full transform overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 sm:px-6 sm:py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 text-sm sm:text-base"
+                className="group relative w-full transform overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:rounded-2xl sm:px-6 sm:py-4 sm:text-base"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                 <div className="relative flex items-center justify-center space-x-2">
                   {isSubmitting ? (
                     <>
                       <svg
-                        className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-white"
+                        className="h-4 w-4 animate-spin text-white sm:h-5 sm:w-5"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -392,13 +424,17 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
                       </svg>
-                      <span className="text-sm sm:text-base">Đang khởi động...</span>
+                      <span className="text-sm sm:text-base">
+                        Đang khởi động...
+                      </span>
                     </>
                   ) : (
                     <>
-                      <span className="text-sm sm:text-base">Bắt đầu làm bài</span>
+                      <span className="text-sm sm:text-base">
+                        Bắt đầu làm bài
+                      </span>
                       <svg
-                        className="h-4 w-4 sm:h-5 sm:w-5 transform transition-transform duration-200 group-hover:translate-x-1"
+                        className="h-4 w-4 transform transition-transform duration-200 group-hover:translate-x-1 sm:h-5 sm:w-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -415,7 +451,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                 </div>
               </button>
 
-              <p className="mt-3 sm:mt-4 flex items-center justify-center text-center text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-3 flex items-center justify-center text-center text-xs text-gray-500 sm:mt-4 dark:text-gray-400">
                 <svg
                   className="mr-1 h-3 w-3 sm:mr-1.5 sm:h-3 sm:w-3"
                   fill="none"
@@ -429,7 +465,9 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span className="text-xs">Thời gian sẽ bắt đầu khi bạn nhấn nút</span>
+                <span className="text-xs">
+                  Thời gian sẽ bắt đầu khi bạn nhấn nút
+                </span>
               </p>
             </div>
           </form>
