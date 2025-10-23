@@ -83,7 +83,7 @@ const CertificatePage: React.FC = () => {
     userName: userInfo.name,
     studentNumber: userInfo.studentNumber,
     classNumber: userInfo.classNumber,
-    major: "Marketing - Kinh doanh quốc tế", // This could be added to userInfo if needed
+    major: userInfo.major, // Use the major from user info stored in localStorage
     score: quizResult?.summary?.correctAnswers || 0,
     totalQuestions: quizResult?.summary?.totalQuestions || 0,
     percentage: quizResult?.summary?.percentage || 0,
