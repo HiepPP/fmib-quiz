@@ -106,11 +106,26 @@ export const blobStorage = {
       console.log(`✅ Saved ${questions.length} questions to blob storage`);
       return {
         url: blob.url,
-        uploadedAt: blob.uploadedAt
+        uploadedAt: new Date()
       };
 
     } catch (error) {
-      console.error('❌ Error saving questions to blob storage:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ Error saving questions to blob storage:', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        questionsCount: questions.length,
+        timestamp: new Date().toISOString()
+      });
+
+      // Enhanced error analysis
+      if (errorMessage.includes('401') || errorMessage.includes('403')) {
+        console.error('🔑 Permission denied - Check your BLOB_READ_WRITE_TOKEN');
+      } else if (errorMessage.includes('404')) {
+        console.error('🏪 Blob store not found - Create a blob store in Vercel dashboard');
+      } else if (errorMessage.includes('fetch') || errorMessage.includes('ENOTFOUND')) {
+        console.error('🌐 Network error - Check your internet connection');
+      }
 
       if (error instanceof BlobStorageError) {
         throw error;
@@ -167,7 +182,22 @@ export const blobStorage = {
       return questions;
 
     } catch (error) {
-      console.error('❌ Error loading questions from blob storage:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ Error loading questions from blob storage:', {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      });
+
+      // Enhanced error analysis
+      if (errorMessage.includes('401') || errorMessage.includes('403')) {
+        console.error('🔑 Permission denied - Check your BLOB_READ_WRITE_TOKEN');
+      } else if (errorMessage.includes('404')) {
+        console.error('🏪 Blob store not found - Create a blob store in Vercel dashboard');
+      } else if (errorMessage.includes('fetch') || errorMessage.includes('ENOTFOUND')) {
+        console.error('🌐 Network error - Check your internet connection');
+      }
+
       console.log('📝 Using default questions as fallback');
       return getDefaultQuestions();
     }
@@ -264,9 +294,7 @@ export const blobStorage = {
     totalSize: number;
   }> => {
     try {
-      const { blobs } = await list({
-        prefix: [QUIZ_QUESTIONS_BLOB, QUIZ_QUESTIONS_BACKUP_PREFIX]
-      });
+      const { blobs } = await list();
 
       const mainQuestions = blobs.find(b => b.pathname === QUIZ_QUESTIONS_BLOB);
       const backups = blobs.filter(b => b.pathname.startsWith(QUIZ_QUESTIONS_BACKUP_PREFIX));
