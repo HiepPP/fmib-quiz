@@ -68,7 +68,7 @@ const QuizPage: NextPage = () => {
       quizResult &&
       (quizResult.summary?.percentage || 0) >= 60
     ) {
-      // Trigger continuous confetti explosion (slower, more gentle)
+      // Trigger confetti explosion for 10 seconds
       const defaults = { startVelocity: 15, spread: 360, ticks: 80, zIndex: 0 };
 
       function randomInRange(min: number, max: number) {
@@ -76,7 +76,6 @@ const QuizPage: NextPage = () => {
       }
 
       const interval: NodeJS.Timeout = setInterval(function () {
-        // Continuous confetti - no end condition
         const particleCount = 25;
 
         // Launch confetti from random positions
@@ -92,8 +91,16 @@ const QuizPage: NextPage = () => {
         });
       }, 600);
 
-      // Store interval ID for cleanup (optional, but good practice)
-      return () => clearInterval(interval);
+      // Stop confetti after 5 seconds
+      const timeout: NodeJS.Timeout = setTimeout(() => {
+        clearInterval(interval);
+      }, 5000);
+
+      // Cleanup both interval and timeout
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
     }
   }, [currentStep, quizResult]);
 
@@ -356,7 +363,8 @@ const QuizPage: NextPage = () => {
                   <FadeIn delay={300}>
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Đang chuẩn bị trải nghiệm trắc nghiệm cá nhân hóa của bạn...
+                        Đang chuẩn bị trải nghiệm trắc nghiệm cá nhân hóa của
+                        bạn...
                       </p>
                       <div className="flex justify-center space-x-1">
                         <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.3s]"></div>
@@ -498,19 +506,23 @@ const QuizPage: NextPage = () => {
                               {questions.length}
                             </span>
                           </div>
-                          <div className={`flex items-center space-x-2 rounded-full px-3 py-1.5 font-mono text-sm font-semibold transition-all duration-300 ${
-                            timeRemaining <= 60
-                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 ring-2 ring-red-200 dark:ring-red-800 animate-pulse'
-                              : timeRemaining <= 180
-                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 ring-2 ring-yellow-200 dark:ring-yellow-800'
-                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 ring-2 ring-green-200 dark:ring-green-800'
-                          }`}>
-                            <div className={`flex items-center justify-center ${
-                              timeRemaining <= 60 ? 'animate-bounce' : ''
-                            }`}>
+                          <div
+                            className={`flex items-center space-x-2 rounded-full px-3 py-1.5 font-mono text-sm font-semibold transition-all duration-300 ${
+                              timeRemaining <= 60
+                                ? "animate-pulse bg-red-100 text-red-700 ring-2 ring-red-200 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-800"
+                                : timeRemaining <= 180
+                                  ? "bg-yellow-100 text-yellow-700 ring-2 ring-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:ring-yellow-800"
+                                  : "bg-green-100 text-green-700 ring-2 ring-green-200 dark:bg-green-900/30 dark:text-green-300 dark:ring-green-800"
+                            }`}
+                          >
+                            <div
+                              className={`flex items-center justify-center ${
+                                timeRemaining <= 60 ? "animate-bounce" : ""
+                              }`}
+                            >
                               <svg
                                 className={`h-4 w-4 ${
-                                  timeRemaining <= 60 ? 'animate-spin' : ''
+                                  timeRemaining <= 60 ? "animate-spin" : ""
                                 }`}
                                 fill="none"
                                 stroke="currentColor"
@@ -524,12 +536,12 @@ const QuizPage: NextPage = () => {
                                 />
                               </svg>
                             </div>
-                            <span className="tabular-nums tracking-wider">
+                            <span className="tracking-wider tabular-nums">
                               {Math.floor(timeRemaining / 60)}:
                               {String(timeRemaining % 60).padStart(2, "0")}
                             </span>
                             {timeRemaining <= 60 && (
-                              <span className="ml-1 text-xs animate-pulse font-bold">
+                              <span className="ml-1 animate-pulse text-xs font-bold">
                                 !
                               </span>
                             )}
@@ -742,12 +754,12 @@ const QuizPage: NextPage = () => {
 
                             {/* Quiz Results */}
                             {quizResult && (
-                              <div className="mb-3 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-2 shadow-xl backdrop-blur-sm transition-all duration-500 hover:shadow-2xl dark:from-gray-900/50 dark:via-blue-900/30 dark:to-purple-900/30 dark:border dark:border-gray-700/50 sm:mb-6 sm:p-4 lg:p-6">
+                              <div className="mb-3 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-2 shadow-xl backdrop-blur-sm transition-all duration-500 hover:shadow-2xl sm:mb-6 sm:p-4 lg:p-6 dark:border dark:border-gray-700/50 dark:from-gray-900/50 dark:via-blue-900/30 dark:to-purple-900/30">
                                 <div className="relative">
                                   {/* Animated background elements */}
                                   <div className="absolute -top-4 -left-4 h-8 w-8 animate-pulse rounded-full bg-blue-400/20 blur-xl"></div>
-                                  <div className="absolute -bottom-4 -right-4 h-8 w-8 animate-pulse rounded-full bg-purple-400/20 blur-xl animation-delay-1000"></div>
-                                  <div className="absolute top-1/2 -left-2 h-4 w-4 animate-ping rounded-full bg-indigo-400/30 animation-delay-500"></div>
+                                  <div className="animation-delay-1000 absolute -right-4 -bottom-4 h-8 w-8 animate-pulse rounded-full bg-purple-400/20 blur-xl"></div>
+                                  <div className="animation-delay-500 absolute top-1/2 -left-2 h-4 w-4 animate-ping rounded-full bg-indigo-400/30"></div>
 
                                   <h3 className="relative mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-center text-sm font-bold text-transparent sm:mb-4 sm:text-base lg:text-lg">
                                     ✨ Kết quả bài trắc nghiệm ✨
@@ -769,22 +781,30 @@ const QuizPage: NextPage = () => {
                                     </div>
                                     {/* Score indicator badges */}
                                     <div className="mt-2 flex justify-center space-x-1">
-                                      {(quizResult.summary?.percentage || 0) >= 90 && (
+                                      {(quizResult.summary?.percentage || 0) >=
+                                        90 && (
                                         <span className="animate-bounce rounded-full bg-yellow-400 px-2 py-1 text-xs font-bold text-yellow-900 shadow-md">
                                           🏆 Xuất sắc
                                         </span>
                                       )}
-                                      {(quizResult.summary?.percentage || 0) >= 70 && (quizResult.summary?.percentage || 0) < 90 && (
-                                        <span className="animate-bounce rounded-full bg-blue-400 px-2 py-1 text-xs font-bold text-blue-900 shadow-md">
-                                          🌟 Tốt
-                                        </span>
-                                      )}
-                                      {(quizResult.summary?.percentage || 0) >= 50 && (quizResult.summary?.percentage || 0) < 70 && (
-                                        <span className="animate-bounce rounded-full bg-green-400 px-2 py-1 text-xs font-bold text-green-900 shadow-md">
-                                          👍 Khá
-                                        </span>
-                                      )}
-                                      {(quizResult.summary?.percentage || 0) < 50 && (
+                                      {(quizResult.summary?.percentage || 0) >=
+                                        70 &&
+                                        (quizResult.summary?.percentage || 0) <
+                                          90 && (
+                                          <span className="animate-bounce rounded-full bg-blue-400 px-2 py-1 text-xs font-bold text-blue-900 shadow-md">
+                                            🌟 Tốt
+                                          </span>
+                                        )}
+                                      {(quizResult.summary?.percentage || 0) >=
+                                        50 &&
+                                        (quizResult.summary?.percentage || 0) <
+                                          70 && (
+                                          <span className="animate-bounce rounded-full bg-green-400 px-2 py-1 text-xs font-bold text-green-900 shadow-md">
+                                            👍 Khá
+                                          </span>
+                                        )}
+                                      {(quizResult.summary?.percentage || 0) <
+                                        50 && (
                                         <span className="animate-bounce rounded-full bg-orange-400 px-2 py-1 text-xs font-bold text-orange-900 shadow-md">
                                           📚 Cố gắng
                                         </span>
@@ -797,11 +817,10 @@ const QuizPage: NextPage = () => {
                                     <div className="group relative transform overflow-hidden rounded-xl bg-white/80 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:bg-gray-800/80 dark:shadow-gray-900/50">
                                       <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
                                       <div className="relative">
-                                        <div className="mb-1 flex justify-center">
-                                          <div className="h-6 w-6 animate-pulse rounded-full bg-blue-400/20"></div>
-                                        </div>
+                                        <div className="mb-1 flex justify-center"></div>
                                         <p className="text-center text-lg font-bold text-gray-900 dark:text-white">
-                                          {quizResult.summary?.totalQuestions || 0}
+                                          {quizResult.summary?.totalQuestions ||
+                                            0}
                                         </p>
                                         <p className="text-center text-xs font-medium text-gray-600 dark:text-gray-400">
                                           Tổng câu
@@ -811,11 +830,10 @@ const QuizPage: NextPage = () => {
                                     <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-green-900/30 dark:to-green-800/30 dark:shadow-green-900/50">
                                       <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
                                       <div className="relative">
-                                        <div className="mb-1 flex justify-center">
-                                          <div className="h-6 w-6 animate-pulse rounded-full bg-green-400/30"></div>
-                                        </div>
+                                        <div className="mb-1 flex justify-center"></div>
                                         <p className="text-center text-lg font-bold text-green-700 dark:text-green-300">
-                                          {quizResult.summary?.correctAnswers || 0}
+                                          {quizResult.summary?.correctAnswers ||
+                                            0}
                                         </p>
                                         <p className="text-center text-xs font-medium text-green-600 dark:text-green-400">
                                           Đúng ✓
@@ -825,11 +843,10 @@ const QuizPage: NextPage = () => {
                                     <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-red-900/30 dark:to-red-800/30 dark:shadow-red-900/50">
                                       <div className="absolute inset-0 bg-gradient-to-br from-red-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
                                       <div className="relative">
-                                        <div className="mb-1 flex justify-center">
-                                          <div className="h-6 w-6 animate-pulse rounded-full bg-red-400/30"></div>
-                                        </div>
+                                        <div className="mb-1 flex justify-center"></div>
                                         <p className="text-center text-lg font-bold text-red-700 dark:text-red-300">
-                                          {quizResult.summary?.incorrectAnswers || 0}
+                                          {quizResult.summary
+                                            ?.incorrectAnswers || 0}
                                         </p>
                                         <p className="text-center text-xs font-medium text-red-600 dark:text-red-400">
                                           Sai ✗
@@ -839,11 +856,17 @@ const QuizPage: NextPage = () => {
                                     <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-purple-900/30 dark:to-purple-800/30 dark:shadow-purple-900/50">
                                       <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
                                       <div className="relative">
-                                        <div className="mb-1 flex justify-center">
-                                          <div className="h-6 w-6 animate-pulse rounded-full bg-purple-400/30"></div>
-                                        </div>
+                                        <div className="mb-1 flex justify-center"></div>
                                         <p className="text-center text-lg font-bold text-purple-700 dark:text-purple-300">
-                                          {Math.floor((quizResult.summary?.timeSpent || 0) / 60)}:{String((quizResult.summary?.timeSpent || 0) % 60).padStart(2, "0")}
+                                          {Math.floor(
+                                            (quizResult.summary?.timeSpent ||
+                                              0) / 60,
+                                          )}
+                                          :
+                                          {String(
+                                            (quizResult.summary?.timeSpent ||
+                                              0) % 60,
+                                          ).padStart(2, "0")}
                                         </p>
                                         <p className="text-center text-xs font-medium text-purple-600 dark:text-purple-400">
                                           Thời gian ⏱
@@ -853,14 +876,20 @@ const QuizPage: NextPage = () => {
                                   </div>
 
                                   {/* Performance Message */}
-                                  <div className="relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-r from-white/60 to-white/40 p-3 text-center shadow-lg backdrop-blur-sm transition-all duration-500 hover:shadow-xl dark:from-gray-800/60 dark:to-gray-900/40 dark:border-gray-700/50 sm:p-4 lg:p-5">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10 animate-gradient-shift"></div>
+                                  <div className="relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-r from-white/60 to-white/40 p-3 text-center shadow-lg backdrop-blur-sm transition-all duration-500 hover:shadow-xl sm:p-4 lg:p-5 dark:border-gray-700/50 dark:from-gray-800/60 dark:to-gray-900/40">
+                                    <div className="animate-gradient-shift absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10"></div>
                                     <div className="relative">
-                                      <p className="mb-1 text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent sm:mb-2 sm:text-base lg:text-lg">
-                                        {getPerformanceMessage(quizResult.summary?.percentage || 0)}
+                                      <p className="mb-1 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-sm font-bold text-transparent sm:mb-2 sm:text-base lg:text-lg">
+                                        {getPerformanceMessage(
+                                          quizResult.summary?.percentage || 0,
+                                        )}
                                       </p>
-                                      <p className="text-xs text-gray-600 dark:text-gray-400 italic">
-                                        &ldquo;{getPerformanceAdvice(quizResult.summary?.percentage || 0)}&rdquo;
+                                      <p className="text-xs text-gray-600 italic dark:text-gray-400">
+                                        &ldquo;
+                                        {getPerformanceAdvice(
+                                          quizResult.summary?.percentage || 0,
+                                        )}
+                                        &rdquo;
                                       </p>
                                     </div>
                                   </div>
@@ -882,8 +911,7 @@ const QuizPage: NextPage = () => {
                                     {userInfo.studentNumber}
                                   </p>
                                   <p>
-                                    <strong>Lớp:</strong>{" "}
-                                    {userInfo.classNumber}
+                                    <strong>Lớp:</strong> {userInfo.classNumber}
                                   </p>
                                 </div>
                               </div>
@@ -929,10 +957,12 @@ const QuizPage: NextPage = () => {
                                     {/* Congratulations subtitle */}
                                     <div className="mt-3 text-center">
                                       <p className="animate-fade-in text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        🎉 Chúc mừng! Bạn đã nhận được chứng nhận của mình!
+                                        🎉 Chúc mừng! Bạn đã nhận được chứng
+                                        nhận của mình!
                                       </p>
                                       <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                                        Chia sẻ thành tích của bạn với người khác
+                                        Chia sẻ thành tích của bạn với người
+                                        khác
                                       </p>
                                     </div>
                                   </div>
