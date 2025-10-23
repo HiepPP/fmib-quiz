@@ -2,25 +2,62 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
 import Layout from '@/components/layout/Layout'
-import { debugBlobStorage, quickHealthCheck, DebugInfo } from '@/lib/blob-debug'
+
+interface DebugInfo {
+  timestamp: string
+  environment: string
+  hasToken: boolean
+  tokenLength: number
+  tokenPrefix: string
+  tests: {
+    tokenValidation: any
+    listTest: any
+    putTest: any
+    cleanupTest?: any
+  }
+  recommendations: string[]
+  error?: string
+  details?: string
+}
 
 const DebugPage: NextPage = () => {
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [healthStatus, setHealthStatus] = useState<{ healthy: boolean; message: string } | null>(null)
 
-  useEffect(() => {
-    // Run quick health check on page load
-    quickHealthCheck().then(setHealthStatus)
-  }, [])
-
   const runDebugTest = async () => {
     setIsLoading(true)
     try {
-      const info = await debugBlobStorage()
-      setDebugInfo(info)
+      const response = await fetch('/api/debug-blob')
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('Debug API error:', data)
+        setDebugInfo({
+          ...data,
+          timestamp: new Date().toISOString(),
+          environment: 'unknown',
+          hasToken: false,
+          tokenLength: 0,
+          tokenPrefix: 'none',
+          tests: {},
+          recommendations: data.error ? [data.error] : []
+        })
+      } else {
+        setDebugInfo(data)
+      }
     } catch (error) {
       console.error('Debug test failed:', error)
+      setDebugInfo({
+        timestamp: new Date().toISOString(),
+        environment: 'unknown',
+        hasToken: false,
+        tokenLength: 0,
+        tokenPrefix: 'none',
+        tests: {},
+        recommendations: ['Failed to connect to debug API', String(error)],
+        error: 'Network error'
+      })
     } finally {
       setIsLoading(false)
     }
@@ -47,17 +84,13 @@ const DebugPage: NextPage = () => {
             </div>
 
             {/* Quick Health Status */}
-            {healthStatus && (
-              <div className={`mb-6 p-4 rounded-lg border ${
-                healthStatus.healthy
-                  ? 'bg-green-50 border-green-200 text-green-800'
-                  : 'bg-red-50 border-red-200 text-red-800'
-              }`}>
-                <div className="flex items-center">
-                  <span className="text-lg font-medium">{healthStatus.message}</span>
-                </div>
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center">
+                <span className="text-blue-800 font-medium">
+                  🔍 Server-side blob storage testing via API
+                </span>
               </div>
-            )}
+            </div>
 
             {/* Run Debug Button */}
             <div className="mb-8">
