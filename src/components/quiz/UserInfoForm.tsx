@@ -28,36 +28,36 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = "Họ và tên là bắt buộc";
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
+      newErrors.name = "Họ và tên phải có ít nhất 2 ký tự";
     } else if (formData.name.trim().length > 100) {
-      newErrors.name = "Name must be less than 100 characters";
+      newErrors.name = "Họ và tên phải dưới 100 ký tự";
     }
 
     // Student number validation
     if (!formData.studentNumber.trim()) {
-      newErrors.studentNumber = "Student number is required";
+      newErrors.studentNumber = "Mã số sinh viên là bắt buộc";
     } else if (!/^[a-zA-Z0-9]{4,20}$/.test(formData.studentNumber.trim())) {
       newErrors.studentNumber =
-        "Student number must be 4-20 alphanumeric characters";
+        "Mã số sinh viên phải có 4-20 ký tự chữ và số";
     }
 
     // Class number validation
     if (!formData.classNumber.trim()) {
-      newErrors.classNumber = "Class number is required";
+      newErrors.classNumber = "Lớp là bắt buộc";
     } else if (!/^[a-zA-Z0-9]{1,10}$/.test(formData.classNumber.trim())) {
       newErrors.classNumber =
-        "Class number must be 1-10 alphanumeric characters";
+        "Lớp phải có 1-10 ký tự chữ và số";
     }
 
     // Major validation
     if (!formData.major.trim()) {
-      newErrors.major = "Major is required";
+      newErrors.major = "Ngành học là bắt buộc";
     } else if (formData.major.trim().length < 2) {
-      newErrors.major = "Major must be at least 2 characters";
+      newErrors.major = "Ngành học phải có ít nhất 2 ký tự";
     } else if (formData.major.trim().length > 100) {
-      newErrors.major = "Major must be less than 100 characters";
+      newErrors.major = "Ngành học phải dưới 100 ký tự";
     }
 
     setErrors(newErrors);
@@ -108,7 +108,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
       onSubmit(userInfo);
     } catch (error) {
       console.error("Error saving user information:", error);
-      alert("An error occurred. Please try again.");
+      alert("Đã xảy ra lỗi. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }

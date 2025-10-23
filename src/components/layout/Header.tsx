@@ -30,7 +30,7 @@ export default function Header({ title = "FMIB Quiz" }: HeaderProps) {
                   : "text-blue-100 dark:text-blue-200"
               }`}
             >
-              Take Quiz
+              Làm bài trắc nghiệm
             </Link>
             <Link
               href="/admin"
@@ -40,7 +40,7 @@ export default function Header({ title = "FMIB Quiz" }: HeaderProps) {
                   : "text-blue-100 dark:text-blue-200"
               }`}
             >
-              Admin
+              Quản trị
             </Link>
           </nav>
         </div>

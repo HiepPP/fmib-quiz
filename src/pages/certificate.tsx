@@ -49,7 +49,7 @@ const CertificatePage: React.FC = () => {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          <p className="mt-2 text-gray-600">Loading certificate...</p>
+          <p className="mt-2 text-gray-600">Đang tải chứng nhận...</p>
         </div>
       </div>
     );
@@ -59,13 +59,13 @@ const CertificatePage: React.FC = () => {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Certificate Not Found</h1>
-          <p className="mt-2 text-gray-600">Please complete the quiz first.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Không tìm thấy chứng nhận</h1>
+          <p className="mt-2 text-gray-600">Vui lòng hoàn thành bài trắc nghiệm trước.</p>
           <button
             onClick={() => router.push('/quiz')}
             className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
-            Go to Quiz
+            Đi đến bài trắc nghiệm
           </button>
         </div>
       </div>

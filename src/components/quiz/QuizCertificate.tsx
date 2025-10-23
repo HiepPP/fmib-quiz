@@ -285,7 +285,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
     // TODO: Implement share functionality
     if (navigator.share) {
       navigator.share({
-        title: "FMIB Quiz Certificate",
+        title: "Chứng nhận FMIB",
         text: `Tôi đã hoàn thành bài trắc nghiệm FMIB với điểm số ${score}/${totalQuestions} (${percentage.toFixed(
           1
         )}%)!`,
@@ -306,7 +306,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             disabled={isDownloading}
           >
             <Download className="w-4 h-4" />
-            {isDownloading ? "Generating..." : "Download"}
+            {isDownloading ? "Đang tạo..." : "Tải xuống"}
           </Button>
           <Button
             onClick={handleShare}
@@ -315,7 +315,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             className="flex items-center gap-2 w-auto"
           >
             <Share2 className="w-4 h-4" />
-            Share
+            Chia sẻ
           </Button>
           <Button
             onClick={onRestart}
@@ -324,7 +324,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             className="flex items-center gap-2 w-auto"
           >
             <RotateCcw className="w-4 h-4" />
-            Restart Quiz
+            Làm lại
           </Button>
           <Button
             onClick={onGoHome}
@@ -333,7 +333,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             className="flex items-center gap-2 w-auto"
           >
             <Home className="w-4 h-4" />
-            Home
+            Trang chủ
           </Button>
         </div>
 
@@ -412,7 +412,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
                 color: "var(--medium-blue)",
               }}
             >
-              Certificate of completion
+              Chứng nhận hoàn thành
             </div>
           </div>
 
@@ -517,7 +517,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
         {/* Certificate ID and Date */}
         {isMounted && (
           <div className="mt-4 text-center text-sm text-gray-500 print:hidden">
-            <p>Certificate ID: {certificateId}</p>
+            <p>Mã chứng nhận: {certificateId}</p>
             <p>
               Ngày cấp:{" "}
               {new Date(completedAt).toLocaleDateString("vi-VN", {

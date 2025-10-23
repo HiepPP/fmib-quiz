@@ -14,8 +14,8 @@ const HomePage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>FMIB Quiz - Redirecting...</title>
-        <meta name="description" content="Redirecting to quiz" />
+        <title>FMIB Quiz - Đang chuyển hướng...</title>
+        <meta name="description" content="Đang chuyển hướng đến bài trắc nghiệm" />
       </Head>
 
       <Layout>
@@ -23,7 +23,7 @@ const HomePage: NextPage = () => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">
-              Redirecting to quiz...
+              Đang chuyển hướng đến bài trắc nghiệm...
             </p>
           </div>
         </div>

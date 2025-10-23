@@ -25,20 +25,20 @@ type QuizStep = "info" | "quiz" | "results";
 
 // Helper functions for performance feedback (temporary until QuizResults component is integrated)
 const getPerformanceMessage = (percentage: number): string => {
-  if (percentage >= 90) return "Outstanding Performance! 🎉";
-  if (percentage >= 80) return "Excellent Work! 🌟";
-  if (percentage >= 70) return "Good Job! 👍";
-  if (percentage >= 60) return "Nice Effort! 💪";
-  if (percentage >= 50) return "Keep Practicing! 📚";
-  return "Room for Improvement! 🎯";
+  if (percentage >= 90) return "Hiệu suất xuất sắc! 🎉";
+  if (percentage >= 80) return "Làm việc tuyệt vời! 🌟";
+  if (percentage >= 70) return "Làm tốt! 👍";
+  if (percentage >= 60) return "Nỗ lực tốt! 💪";
+  if (percentage >= 50) return "Tiếp tục rèn luyện! 📚";
+  return "Cần cải thiện! 🎯";
 };
 
 const getPerformanceAdvice = (percentage: number): string => {
-  if (percentage >= 80) return "You have mastered this material!";
-  if (percentage >= 70) return "You have a good understanding of the material.";
-  if (percentage >= 60) return "Review the areas where you struggled.";
-  if (percentage >= 50) return "Consider spending more time studying.";
-  return "Don't give up! Practice makes perfect.";
+  if (percentage >= 80) return "Bạn đã thành thạo tài liệu này!";
+  if (percentage >= 70) return "Bạn có hiểu biết tốt về tài liệu.";
+  if (percentage >= 60) return "Xem lại các phần bạn gặp khó khăn.";
+  if (percentage >= 50) return "Cân nhắc dành nhiều thời gian học hơn.";
+  return "Đừng bỏ cuộc! Luyện tập tạo nên sự hoàn hảo.";
 };
 
 const QuizPage: NextPage = () => {
@@ -104,7 +104,7 @@ const QuizPage: NextPage = () => {
 
     if (savedQuestions.length === 0) {
       setError(
-        "No quiz questions available. Please contact the administrator.",
+        "Không có câu hỏi trắc nghiệm nào. Vui lòng liên hệ quản trị viên.",
       );
       setIsLoading(false);
       return;
@@ -329,23 +329,41 @@ const QuizPage: NextPage = () => {
     return (
       <>
         <Head>
-          <title>FMIB Quiz - Loading</title>
+          <title>FMIB Quiz - Đang tải</title>
         </Head>
         <Layout title="FMIB Quiz">
           <div className="flex min-h-[60vh] flex-1 items-center justify-center">
             <PageTransition>
-              <Card variant="ghost" className="mx-auto max-w-md">
+              <Card
+                variant="ghost"
+                className="mx-auto max-w-md border-0 bg-transparent shadow-none"
+              >
                 <CardContent className="p-8 text-center">
+                  <div className="mb-6">
+                    <div className="relative mx-auto h-16 w-16">
+                      <div className="absolute inset-0 animate-ping rounded-full bg-blue-400/20"></div>
+                      <div className="relative flex h-16 w-16 items-center justify-center">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                      </div>
+                    </div>
+                  </div>
                   <AnimatedLoading
                     type="dots"
                     size="lg"
-                    text="Loading quiz..."
-                    className="mb-4"
+                    text="Đang tải bài trắc nghiệm..."
+                    className="mb-4 text-blue-600 dark:text-blue-400"
                   />
                   <FadeIn delay={300}>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Preparing your quiz experience...
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Đang chuẩn bị trải nghiệm trắc nghiệm cá nhân hóa của bạn...
+                      </p>
+                      <div className="flex justify-center space-x-1">
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.3s]"></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 [animation-delay:-0.15s]"></div>
+                        <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500"></div>
+                      </div>
+                    </div>
                   </FadeIn>
                 </CardContent>
               </Card>
@@ -360,25 +378,62 @@ const QuizPage: NextPage = () => {
     return (
       <>
         <Head>
-          <title>FMIB Quiz - Error</title>
+          <title>FMIB Quiz - Lỗi</title>
         </Head>
         <Layout title="FMIB Quiz">
           <div className="flex min-h-[60vh] flex-1 items-center justify-center">
             <PageTransition>
               <div className="mx-auto w-full max-w-md px-4">
                 <SlideIn direction="up" delay={100}>
-                  <Alert
-                    variant="error"
-                    title="Quiz Not Available"
-                    className="mb-6"
-                  >
-                    {error}
-                  </Alert>
+                  <div className="mb-6 text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                      <svg
+                        className="h-8 w-8 text-red-600 dark:text-red-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                    </div>
+                    <Alert
+                      variant="error"
+                      title="Bài trắc nghiệm không khả dụng"
+                      className="mb-6"
+                    >
+                      {error}
+                    </Alert>
+                  </div>
                 </SlideIn>
                 <SlideIn direction="up" delay={200}>
                   <div className="flex justify-center">
-                    <Button onClick={handleGoHome} variant="primary" size="lg">
-                      Go Home
+                    <Button
+                      onClick={handleGoHome}
+                      variant="primary"
+                      size="lg"
+                      className="transform transition-all duration-200 hover:scale-105 active:scale-95"
+                    >
+                      <span className="flex items-center space-x-2">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                          />
+                        </svg>
+                        <span>Về trang chủ</span>
+                      </span>
                     </Button>
                   </div>
                 </SlideIn>
@@ -395,12 +450,12 @@ const QuizPage: NextPage = () => {
       <Head>
         <title>
           {currentStep === "info"
-            ? "FMIB Quiz - Start"
+            ? "FMIB Quiz - Bắt đầu"
             : currentStep === "quiz"
-              ? "FMIB Quiz - In Progress"
-              : "FMIB Quiz - Results"}
+              ? "FMIB Quiz - Đang làm"
+              : "FMIB Quiz - Kết quả"}
         </title>
-        <meta name="description" content="Take the FMIB quiz" />
+        <meta name="description" content="Làm bài trắc nghiệm FMIB" />
       </Head>
 
       <Layout title="FMIB Quiz">
@@ -411,7 +466,13 @@ const QuizPage: NextPage = () => {
               <header
                 className="mb-2 text-center sm:mb-3 lg:mb-6"
                 role="banner"
-              ></header>
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                    <div className="h-24 w-24 animate-pulse rounded-full border-4 border-blue-500"></div>
+                  </div>
+                </div>
+              </header>
 
               {/* Step content */}
               <FadeIn delay={200}>
@@ -427,6 +488,63 @@ const QuizPage: NextPage = () => {
                       className="mx-auto max-w-full px-1 sm:max-w-3xl lg:max-w-4xl"
                       role="main"
                     >
+                      {/* Quiz Progress Indicator */}
+                      <div className="mb-4 rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                            <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                              Câu hỏi {currentQuestionIndex + 1} /{" "}
+                              {questions.length}
+                            </span>
+                          </div>
+                          <div className={`flex items-center space-x-2 rounded-full px-3 py-1.5 font-mono text-sm font-semibold transition-all duration-300 ${
+                            timeRemaining <= 60
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 ring-2 ring-red-200 dark:ring-red-800 animate-pulse'
+                              : timeRemaining <= 180
+                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 ring-2 ring-yellow-200 dark:ring-yellow-800'
+                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 ring-2 ring-green-200 dark:ring-green-800'
+                          }`}>
+                            <div className={`flex items-center justify-center ${
+                              timeRemaining <= 60 ? 'animate-bounce' : ''
+                            }`}>
+                              <svg
+                                className={`h-4 w-4 ${
+                                  timeRemaining <= 60 ? 'animate-spin' : ''
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                            </div>
+                            <span className="tabular-nums tracking-wider">
+                              {Math.floor(timeRemaining / 60)}:
+                              {String(timeRemaining % 60).padStart(2, "0")}
+                            </span>
+                            {timeRemaining <= 60 && (
+                              <span className="ml-1 text-xs animate-pulse font-bold">
+                                !
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-2 overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <div
+                            className="h-1 bg-blue-500 transition-all duration-300 ease-out"
+                            style={{
+                              width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+
                       {/* Simple Timer (hidden but functional to keep timeRemaining updated) */}
                       {sessionStartTime && (
                         <div className="hidden">
@@ -479,8 +597,8 @@ const QuizPage: NextPage = () => {
                                   className="mb-2 text-lg font-semibold text-gray-900 dark:text-white"
                                 >
                                   {isTimerExpired
-                                    ? "Time expired! Submitting quiz..."
-                                    : "Submitting quiz..."}
+                                    ? "Hết giờ! Đang nộp bài..."
+                                    : "Đang nộp bài..."}
                                 </h2>
                                 <AnimatedLoading
                                   type="spinner"
@@ -491,7 +609,7 @@ const QuizPage: NextPage = () => {
                                   id="submitting-description"
                                   className="text-sm text-gray-600 dark:text-gray-400"
                                 >
-                                  Please don&apos;t close this window
+                                  Vui lòng không đóng cửa sổ này
                                 </p>
                               </CardContent>
                             </Card>
@@ -502,12 +620,12 @@ const QuizPage: NextPage = () => {
                       {submitError && (
                         <div className="mx-auto mt-3 max-w-md">
                           <SlideIn direction="up">
-                            <Alert variant="error" title="Submission Error">
+                            <Alert variant="error" title="Lỗi nộp bài">
                               <div className="space-y-1">
                                 <p className="text-sm">{submitError}</p>
                                 <p className="text-xs opacity-80">
-                                  Your quiz has been saved locally. You can try
-                                  again or contact support.
+                                  Bài trắc nghiệm của bạn đã được lưu cục bộ.
+                                  Bạn có thể thử lại hoặc liên hệ hỗ trợ.
                                 </p>
                               </div>
                             </Alert>
@@ -521,9 +639,24 @@ const QuizPage: NextPage = () => {
                             onClick={handleRestartQuiz}
                             variant="ghost"
                             size="sm"
-                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                            className="transform text-red-600 transition-all duration-200 hover:scale-105 hover:bg-red-50 hover:text-red-800 active:scale-95 dark:text-red-400 dark:hover:bg-red-900/10 dark:hover:text-red-300"
                           >
-                            End Quiz Early
+                            <span className="flex items-center space-x-2">
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              <span>Kết thúc bài trắc nghiệm sớm</span>
+                            </span>
                           </Button>
                         </div>
                       )}
@@ -536,7 +669,10 @@ const QuizPage: NextPage = () => {
                 {currentStep === "results" && (
                   <div className="mx-auto max-w-2xl">
                     <SlideIn direction="up" delay={100}>
-                      <Card variant="elevated">
+                      <Card variant="elevated" className="overflow-hidden">
+                        <div className="relative h-1 overflow-hidden bg-blue-500">
+                          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                        </div>
                         <CardContent className="p-2 sm:p-3 lg:p-6">
                           <div className="py-4 text-center sm:py-6 lg:py-12">
                             {/* Timer Expired Warning */}
@@ -557,8 +693,7 @@ const QuizPage: NextPage = () => {
                                     />
                                   </svg>
                                   <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200">
-                                    Quiz automatically submitted due to time
-                                    limit
+                                    Bài trắc nghiệm được tự động nộp do hết giờ
                                   </p>
                                 </div>
                               </div>
@@ -592,35 +727,36 @@ const QuizPage: NextPage = () => {
                             </svg>
                             <h2 className="mb-1 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl lg:text-2xl dark:text-white">
                               {submitError
-                                ? "Quiz Completed (with errors)"
+                                ? "Đã hoàn thành bài trắc nghiệm (có lỗi)"
                                 : isTimerExpired
-                                  ? "Time Expired!"
-                                  : "Quiz Completed!"}
+                                  ? "Hết giờ!"
+                                  : "Đã hoàn thành bài trắc nghiệm!"}
                             </h2>
                             <p className="mb-3 text-xs text-gray-600 sm:mb-6 sm:text-sm dark:text-gray-400">
                               {submitError
-                                ? "Your quiz was completed but there was an error submitting to the server."
+                                ? "Bài trắc nghiệm của bạn đã hoàn thành nhưng có lỗi khi nộp lên máy chủ."
                                 : isTimerExpired
-                                  ? "Your quiz was automatically submitted when the time ran out."
-                                  : "Your quiz has been successfully submitted!"}
+                                  ? "Bài trắc nghiệm của bạn đã được tự động nộp khi hết giờ."
+                                  : "Bài trắc nghiệm của bạn đã được nộp thành công!"}
                             </p>
 
                             {/* Quiz Results */}
                             {quizResult && (
                               <div className="mb-3 rounded-lg bg-gray-50 p-2 sm:mb-6 sm:p-4 lg:p-6 dark:bg-gray-700">
                                 <h3 className="mb-1.5 text-sm font-semibold text-gray-900 sm:mb-4 sm:text-base lg:text-lg dark:text-white">
-                                  Quiz Results
+                                  Kết quả bài trắc nghiệm
                                 </h3>
 
                                 {/* Score Display */}
                                 <div className="mb-3 text-center sm:mb-6">
-                                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-full border-4 border-blue-200 bg-blue-100 sm:h-20 sm:w-20 lg:h-24 lg:w-24 dark:border-blue-800 dark:bg-blue-900/30">
-                                    <div>
-                                      <p className="text-base font-bold text-blue-800 sm:text-xl lg:text-2xl dark:text-blue-200">
+                                  <div className="relative inline-flex h-14 w-14 items-center justify-center rounded-full border-4 border-blue-200 bg-blue-100 sm:h-20 sm:w-20 lg:h-24 lg:w-24 dark:border-blue-800 dark:bg-blue-900/30">
+                                    <div className="absolute inset-0 animate-ping rounded-full border-4 border-blue-300 opacity-20"></div>
+                                    <div className="relative">
+                                      <p className="animate-fade-in text-base font-bold text-blue-800 sm:text-xl lg:text-2xl dark:text-blue-200">
                                         {quizResult.summary?.percentage || 0}%
                                       </p>
                                       <p className="text-xs text-blue-600 dark:text-blue-400">
-                                        Score
+                                        Điểm số
                                       </p>
                                     </div>
                                   </div>
@@ -628,45 +764,58 @@ const QuizPage: NextPage = () => {
 
                                 {/* Statistics Grid */}
                                 <div className="mb-3 grid grid-cols-4 gap-1.5 sm:mb-6 sm:gap-4">
-                                  <div className="text-center">
-                                    <p className="text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
-                                      {quizResult.summary?.totalQuestions || 0}
-                                    </p>
+                                  <div className="rounded-lg bg-gray-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                    <div className="relative">
+                                      <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100">
+                                        <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-600"></div>
+                                      </div>
+                                      <p className="relative text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
+                                        {quizResult.summary?.totalQuestions ||
+                                          0}
+                                      </p>
+                                    </div>
                                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Qs
+                                      Số câu hỏi
                                     </p>
                                   </div>
-                                  <div className="text-center">
-                                    <p className="text-base font-bold text-green-600 sm:text-xl lg:text-2xl dark:text-green-400">
-                                      {quizResult.summary?.correctAnswers || 0}
-                                    </p>
+                                  <div className="rounded-lg bg-green-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30">
+                                    <div className="relative">
+                                      <p className="text-base font-bold text-green-600 sm:text-xl lg:text-2xl dark:text-green-400">
+                                        {quizResult.summary?.correctAnswers ||
+                                          0}
+                                      </p>
+                                    </div>
                                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Correct
+                                      Đúng
                                     </p>
                                   </div>
-                                  <div className="text-center">
-                                    <p className="text-base font-bold text-red-600 sm:text-xl lg:text-2xl dark:text-red-400">
-                                      {quizResult.summary?.incorrectAnswers ||
-                                        0}
-                                    </p>
+                                  <div className="rounded-lg bg-red-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30">
+                                    <div className="relative">
+                                      <p className="text-base font-bold text-red-600 sm:text-xl lg:text-2xl dark:text-red-400">
+                                        {quizResult.summary?.incorrectAnswers ||
+                                          0}
+                                      </p>
+                                    </div>
                                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Wrong
+                                      Sai
                                     </p>
                                   </div>
-                                  <div className="text-center">
-                                    <p className="text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
-                                      {Math.floor(
-                                        (quizResult.summary?.timeSpent || 0) /
-                                          60,
-                                      )}
-                                      :
-                                      {String(
-                                        (quizResult.summary?.timeSpent || 0) %
-                                          60,
-                                      ).padStart(2, "0")}
-                                    </p>
+                                  <div className="rounded-lg bg-blue-50 p-2 text-center transition-all duration-200 hover:scale-105 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30">
+                                    <div className="relative">
+                                      <p className="text-base font-bold text-gray-900 sm:text-xl lg:text-2xl dark:text-white">
+                                        {Math.floor(
+                                          (quizResult.summary?.timeSpent || 0) /
+                                            60,
+                                        )}
+                                        :
+                                        {String(
+                                          (quizResult.summary?.timeSpent || 0) %
+                                            60,
+                                        ).padStart(2, "0")}
+                                      </p>
+                                    </div>
                                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                                      Time
+                                      Thời gian
                                     </p>
                                   </div>
                                 </div>
@@ -690,18 +839,18 @@ const QuizPage: NextPage = () => {
                             {userInfo && (
                               <div className="mb-3 rounded-lg bg-gray-50 p-1.5 text-left sm:mb-6 sm:p-3 lg:mb-8 lg:p-4 dark:bg-gray-700">
                                 <h3 className="mb-1 text-xs font-medium text-gray-900 sm:mb-2 sm:text-sm dark:text-white">
-                                  Quiz Information:
+                                  Thông tin bài trắc nghiệm:
                                 </h3>
                                 <div className="space-y-0.5 text-xs text-gray-600 dark:text-gray-400">
                                   <p>
-                                    <strong>Name:</strong> {userInfo.name}
+                                    <strong>Họ và tên:</strong> {userInfo.name}
                                   </p>
                                   <p>
-                                    <strong>Student #:</strong>{" "}
+                                    <strong>MSSV:</strong>{" "}
                                     {userInfo.studentNumber}
                                   </p>
                                   <p>
-                                    <strong>Class #:</strong>{" "}
+                                    <strong>Lớp:</strong>{" "}
                                     {userInfo.classNumber}
                                   </p>
                                 </div>
@@ -714,55 +863,93 @@ const QuizPage: NextPage = () => {
                                 <div className="mb-4 sm:mb-8">
                                   <div className="mx-auto max-w-full sm:max-w-xs">
                                     {/* Certificate button optimized for mobile */}
-                                    <button
-                                      onClick={handleViewCertificate}
-                                      className="relative w-full transform rounded-lg bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 px-3 py-2.5 font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 hover:shadow-xl focus:ring-2 focus:ring-yellow-300/50 focus:outline-none active:scale-100 sm:px-4 sm:py-3 lg:px-8 lg:py-4"
-                                    >
-                                      <span className="flex items-center justify-center space-x-1.5 sm:space-x-2 lg:space-x-3">
-                                        <svg
-                                          className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-6 lg:h-8 lg:w-8"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                                          />
-                                        </svg>
-                                        <span className="text-xs sm:text-sm lg:text-lg">
-                                          Certificate
+                                    <div className="group relative">
+                                      <div className="absolute -inset-0.5 rounded-lg bg-yellow-400 opacity-75 blur transition duration-300 group-hover:opacity-100 group-hover:blur-sm"></div>
+                                      <button
+                                        onClick={handleViewCertificate}
+                                        className="relative w-full transform rounded-lg bg-yellow-500 px-3 py-2.5 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-yellow-400 hover:shadow-xl focus:ring-4 focus:ring-yellow-300/50 focus:outline-none active:scale-100 sm:px-4 sm:py-3 lg:px-8 lg:py-4"
+                                      >
+                                        <span className="flex items-center justify-center space-x-1.5 sm:space-x-2 lg:space-x-3">
+                                          <svg
+                                            className="h-4 w-4 flex-shrink-0 animate-pulse sm:h-5 sm:w-6 lg:h-8 lg:w-8"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                                            />
+                                          </svg>
+                                          <span className="text-xs sm:text-sm lg:text-lg">
+                                            Certificate
+                                          </span>
                                         </span>
-                                      </span>
-                                      {/* Badge indicator */}
-                                      <div className="absolute -top-1 -right-1 rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md sm:-top-1.5 sm:-right-1.5 sm:px-2 sm:py-1">
-                                        🏆
-                                      </div>
-                                    </button>
+                                        {/* Badge indicator */}
+                                        <div className="absolute -top-1 -right-1 animate-bounce rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white shadow-md sm:-top-1.5 sm:-right-1.5 sm:px-2 sm:py-1">
+                                          🏆
+                                        </div>
+                                      </button>
+                                    </div>
 
                                     {/* Congratulations subtitle */}
-                                    <p className="mt-1.5 text-center text-xs text-gray-600 sm:mt-4 dark:text-gray-400">
-                                      🎉 You earned your certificate!
-                                    </p>
+                                    <div className="mt-3 text-center">
+                                      <p className="animate-fade-in text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        🎉 Chúc mừng! Bạn đã nhận được chứng nhận của mình!
+                                      </p>
+                                      <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                                        Chia sẻ thành tích của bạn với người khác
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
                               )}
 
                             {/* Secondary actions */}
-                            <div className="flex flex-col justify-center gap-2 sm:flex-row sm:gap-4">
+                            <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
                               <button
                                 onClick={handleRestartQuiz}
-                                className="w-full rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-blue-700 active:bg-blue-800 sm:w-auto sm:px-6 sm:text-sm"
+                                className="group relative w-full transform rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
                               >
-                                Take Quiz Again
+                                <span className="flex items-center justify-center space-x-2">
+                                  <svg
+                                    className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                  </svg>
+                                  <span>Làm lại bài trắc nghiệm</span>
+                                </span>
                               </button>
                               <button
                                 onClick={handleGoHome}
-                                className="w-full rounded-md bg-gray-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-gray-700 active:bg-gray-800 sm:w-auto sm:px-6 sm:text-sm"
+                                className="group relative w-full transform rounded-lg bg-gray-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-gray-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
                               >
-                                Go Home
+                                <span className="flex items-center justify-center space-x-2">
+                                  <svg
+                                    className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                                    />
+                                  </svg>
+                                  <span>Về trang chủ</span>
+                                </span>
                               </button>
                             </div>
                           </div>
