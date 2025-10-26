@@ -2029,261 +2029,12 @@ export function logDebugInfo(debugInfo: DebugInfo): void {
 }
 </file>
 
-<file path="src/lib/dev-storage.ts">
-import { Question } from './storage';
-
-/**
- * Development utility for handling blob storage configuration
- */
-
-export const checkBlobStorageConfig = (): {
-  isConfigured: boolean;
-  message: string;
-  canProceed: boolean;
-} => {
-  // Check if we're in development mode
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  // Check if blob token is configured
-  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
-
-  if (!hasBlobToken) {
-    return {
-      isConfigured: false,
-      message: isDevelopment
-        ? '⚠️ Vercel Blob storage is not configured. Using localStorage for development. To use blob storage, set BLOB_READ_WRITE_TOKEN in your .env.local file.'
-        : '❌ Vercel Blob storage is not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.',
-      canProceed: isDevelopment // Allow proceeding in development with localStorage fallback
-    };
-  }
-
-  return {
-    isConfigured: true,
-    message: '✅ Vercel Blob storage is properly configured.',
-    canProceed: true
-  };
-};
-
-/**
- * Development fallback storage when blob storage is not configured
- */
-export const devFallbackStorage = {
-  saveQuestions: (questions: Question[]): void => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('fmib_quiz_questions_dev', JSON.stringify(questions));
-      console.log('📝 Questions saved to localStorage (development fallback)');
-    }
-  },
-
-  getQuestions: (): Question[] => {
-    if (typeof window !== 'undefined') {
-      const questionsData = localStorage.getItem('fmib_quiz_questions_dev');
-      if (questionsData) {
-        const questions = JSON.parse(questionsData);
-        console.log('📥 Questions loaded from localStorage (development fallback)');
-        return questions;
-      }
-    }
-
-    // Return default questions if nothing is stored
-    const defaultQuestions: Question[] = [
-      {
-        id: 'dev-1',
-        question: 'What is the capital of France? (Development Mode)',
-        answers: [
-          { id: 'a1', text: 'London', isCorrect: false },
-          { id: 'a2', text: 'Berlin', isCorrect: false },
-          { id: 'a3', text: 'Paris', isCorrect: true },
-          { id: 'a4', text: 'Madrid', isCorrect: false }
-        ]
-      },
-      {
-        id: 'dev-2',
-        question: 'What is 2 + 2? (Development Mode)',
-        answers: [
-          { id: 'a3', text: '3', isCorrect: false },
-          { id: 'a4', text: '4', isCorrect: true },
-          { id: 'a5', text: '5', isCorrect: false },
-          { id: 'a6', text: '22', isCorrect: false }
-        ]
-      }
-    ];
-
-    console.log('📝 Using default development questions');
-    return defaultQuestions;
-  },
-
-  clearQuestions: (): void => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('fmib_quiz_questions_dev');
-      console.log('🗑️ Development questions cleared from localStorage');
-    }
-  }
-};
-
-/**
- * Show development configuration warning
- */
-export const showDevWarning = (): void => {
-  const config = checkBlobStorageConfig();
-
-  if (!config.isConfigured && typeof window !== 'undefined') {
-    console.log(`
-🚀 FMIB Quiz - Development Mode
-${config.message}
-
-To configure Vercel Blob storage:
-1. Go to your Vercel project dashboard
-2. Navigate to Storage tab
-3. Create a new Blob store
-4. Copy the BLOB_READ_WRITE_TOKEN
-5. Add it to your .env.local file
-
-For now, using localStorage for development.
-    `);
-  }
-};
-</file>
-
 <file path="src/lib/utils.ts">
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-</file>
-
-<file path="src/pages/api/debug-blob.ts">
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { put, list, head } from '@vercel/blob'
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
-
-  const debugInfo = {
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-    tokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length || 0,
-    tokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 20) || 'none',
-    tests: {} as any
-  }
-
-  try {
-    // Test 1: Token validation
-    debugInfo.tests.tokenValidation = {
-      success: debugInfo.hasToken && debugInfo.tokenLength > 20,
-      message: debugInfo.hasToken
-        ? `Token present (${debugInfo.tokenLength} chars)`
-        : 'Token missing'
-    }
-
-    if (!debugInfo.hasToken) {
-      return res.status(400).json({
-        ...debugInfo,
-        error: 'BLOB_READ_WRITE_TOKEN not configured',
-        recommendations: ['Add BLOB_READ_WRITE_TOKEN to environment variables']
-      })
-    }
-
-    // Test 2: List operation
-    try {
-      const result = await list()
-      debugInfo.tests.listTest = {
-        success: true,
-        message: `Successfully listed ${result.blobs.length} blobs`,
-        details: {
-          blobCount: result.blobs.length,
-          blobNames: result.blobs.map(b => b.pathname)
-        }
-      }
-    } catch (error: any) {
-      debugInfo.tests.listTest = {
-        success: false,
-        message: 'List operation failed',
-        error: error.message
-      }
-    }
-
-    // Test 3: Put operation (only if list succeeded)
-    if (debugInfo.tests.listTest.success) {
-      try {
-        const testData = { test: true, timestamp: new Date().toISOString() }
-        const blob = await put('debug-test.json', JSON.stringify(testData), {
-          access: 'public',
-          contentType: 'application/json'
-        })
-
-        debugInfo.tests.putTest = {
-          success: true,
-          message: 'Successfully created test file',
-          details: {
-            url: blob.url,
-            uploadedAt: blob.uploadedAt
-          }
-        }
-
-        // Clean up - delete the test file
-        try {
-          const { del } = await import('@vercel/blob')
-          await del(blob.url)
-          debugInfo.tests.cleanupTest = {
-            success: true,
-            message: 'Successfully cleaned up test file'
-          }
-        } catch (cleanupError) {
-          debugInfo.tests.cleanupTest = {
-            success: false,
-            message: 'Failed to cleanup test file',
-            error: (cleanupError as Error).message
-          }
-        }
-
-      } catch (error: any) {
-        debugInfo.tests.putTest = {
-          success: false,
-          message: 'Put operation failed',
-          error: error.message
-        }
-      }
-    }
-
-    // Generate recommendations
-    const recommendations = []
-    if (!debugInfo.hasToken) {
-      recommendations.push('Add BLOB_READ_WRITE_TOKEN to environment variables')
-    }
-    if (!debugInfo.tests.listTest.success) {
-      if (debugInfo.tests.listTest.error?.includes('401') || debugInfo.tests.listTest.error?.includes('403')) {
-        recommendations.push('Check your BLOB_READ_WRITE_TOKEN permissions')
-        recommendations.push('Regenerate the token in Vercel dashboard')
-      }
-      if (debugInfo.tests.listTest.error?.includes('404')) {
-        recommendations.push('Create a blob store in Vercel dashboard')
-      }
-    }
-    if (!debugInfo.tests.putTest.success && debugInfo.tests.listTest.success) {
-      recommendations.push('Check write permissions for your blob store')
-    }
-
-    debugInfo.recommendations = recommendations
-
-    return res.status(200).json(debugInfo)
-
-  } catch (error: any) {
-    console.error('Debug API error:', error)
-    return res.status(500).json({
-      ...debugInfo,
-      error: 'Internal server error during debug',
-      details: error.message
-    })
-  }
 }
 </file>
 
@@ -2781,7 +2532,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js 15 project bootstrapped with `create-next-app` using the Pages Router architecture. The project is set up with TypeScript, Tailwind CSS v4, and ESLint configuration.
+FMIB Quiz is a modern quiz application built with Next.js 15, TypeScript, and Tailwind CSS v4. The application provides an interactive quiz experience with admin management capabilities and persistent storage using Vercel Blob Storage.
 
 ## Development Commands
 
@@ -2802,51 +2553,107 @@ No test framework is currently configured. Consider adding Jest, Vitest, or Play
 - API routes are located in `src/pages/api/`
 - Path alias configured: `@/*` maps to `./src/*`
 
+### Storage Architecture
+The application uses a dual storage system:
+1. **Vercel Blob Storage** (Production) - Persistent across deployments
+2. **localStorage** (Development & Fallback) - For session management
+
+Key storage files:
+- `src/lib/blob-storage.ts` - Vercel Blob storage client with fallbacks
+- `src/lib/storage.ts` - localStorage utilities for session management
+- `src/pages/api/blob-questions.ts` - Full CRUD API for blob storage
+
+### Application Structure
+
+#### Main Pages
+- `src/pages/index.tsx` - Landing page (auto-redirects to /quiz)
+- `src/pages/quiz.tsx` - Main quiz interface with timer and navigation
+- `src/pages/admin.tsx` - Admin panel for question management
+- `src/pages/certificate.tsx` - Certificate generation
+
+#### Core Services
+- `src/lib/quizService.ts` - Quiz business logic, validation, and API interaction
+- `src/lib/api.ts` - HTTP API client with error handling
+- `src/types/quiz.ts` - TypeScript definitions for quiz data
+
+#### Component Architecture
+- `src/components/ui/` - Reusable UI components (shadcn-inspired)
+- `src/components/quiz/` - Quiz-specific components
+- `src/components/admin/` - Admin-specific components
+
+### Key Features
+
+#### Quiz System
+- **Timer System** - 10-minute countdown with auto-submission
+- **Session Management** - Progress tracked in localStorage
+- **Answer Persistence** - Auto-save on each selection
+- **Certificate Generation** - PDF certificates for scores ≥60%
+
+#### Admin Features
+- **Question CRUD** - Create, read, update, delete questions
+- **Import/Export** - JSON format for question backup
+- **Storage Monitoring** - Debug tools for blob storage
+
+### API Routes
+- `/api/quiz/questions` - Fetch quiz questions (supports blob and mock data)
+- `/api/quiz/submit` - Submit quiz answers for grading
+- `/api/blob-questions` - Full CRUD for blob storage management
+- `/api/debug-blob` - Debug utilities for storage issues
+
+### Environment Variables
+```bash
+BLOB_READ_WRITE_TOKEN=your_token_here      # Vercel Blob storage
+NEXT_PUBLIC_APP_URL=http://localhost:3000  # App URL
+NODE_ENV=development                       # Environment mode
+```
+
 ### Styling
 - **Tailwind CSS v4** with inline theme configuration
 - CSS variables for dark/light mode support defined in `src/styles/globals.css`
 - Geist font family (sans and mono variants) configured globally
 - Responsive design with mobile-first approach
 
-### Key Files Structure
-- `src/pages/index.tsx` - Main homepage component
-- `src/pages/_app.tsx` - Next.js app wrapper
-- `src/pages/_document.tsx` - HTML document structure
-- `src/pages/api/hello.ts` - Example API route
-- `src/styles/globals.css` - Global styles and Tailwind configuration
-- `next.config.ts` - Next.js configuration with React Strict Mode enabled
+### Development Notes
 
-### TypeScript Configuration
-- Strict mode enabled
-- Path aliasing configured for `@/*`
-- Target: ES2017
-- JSX preserve mode for Next.js compatibility
+#### Session Flow
+1. User Info Collection → Save to localStorage
+2. Quiz Session → Track progress, answers, timer (10-minute countdown)
+3. Auto-save → Answers saved on each selection
+4. Session Timeout → Automatic submission
+5. Results → Certificate generation for passing scores
 
-### ESLint Configuration
-- Uses Next.js recommended rules (`next/core-web-vitals`, `next/typescript`)
-- Standard ignores for build outputs and dependencies
+#### Security Features
+- Correct answer masking in API responses
+- Session validation with timeout checks
+- Input validation for questions and answers
+- No authentication system (public interface)
 
-## Development Notes
-
-### Font Usage
-- Geist Sans and Geist Mono fonts are configured as CSS variables
-- Font variables: `--font-geist-sans` and `--font-geist-mono`
-- Applied through Tailwind's theme configuration
-
-### Dark Mode
-- Built-in dark mode support using `prefers-color-scheme`
-- CSS variables for background and foreground colors
-- Components use `dark:` prefix for dark mode styles
-
-### API Routes
-- Follow Next.js Pages Router API route conventions
-- Type definitions included for `NextApiRequest` and `NextApiResponse`
-- Example route returns JSON at `/api/hello`
-
-### Build System
+#### Build Configuration
 - Uses Turbopack for both development and production builds
 - React Strict Mode enabled in configuration
 - Standard Next.js build output optimization
+- TypeScript with strict compilation
+
+## Working with This Codebase
+
+### Key Entry Points
+- Start with `src/pages/quiz.tsx` for main quiz flow
+- `src/pages/admin.tsx` for question management
+- `src/lib/blob-storage.ts` for storage operations
+- `src/lib/quizService.ts` for business logic
+
+### Important Patterns
+- Uses Vercel Blob storage with localStorage fallback
+- Timer-based auto-submission after 10 minutes
+- Session management with localStorage persistence
+- Component composition for reusability
+- Type-safe API layer with comprehensive error handling
+
+### Configuration Points
+- Environment variables in `.env.local`
+- Blob storage configuration for production deployment
+- Timer and session settings in constants
+- UI theming through Tailwind CSS variables
 </file>
 
 <file path="eslint.config.mjs">
@@ -2997,6 +2804,127 @@ export default config;
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
+</file>
+
+<file path="src/lib/dev-storage.ts">
+import { Question } from "./storage";
+
+/**
+ * Development utility for handling blob storage configuration
+ */
+
+export const checkBlobStorageConfig = (): {
+  isConfigured: boolean;
+  message: string;
+  canProceed: boolean;
+} => {
+  // Check if we're in development mode
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  // Check if blob token is configured
+  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
+
+  if (!hasBlobToken) {
+    return {
+      isConfigured: false,
+      message: isDevelopment
+        ? "⚠️ Vercel Blob storage is not configured. Using localStorage for development. To use blob storage, set BLOB_READ_WRITE_TOKEN in your .env.local file."
+        : "❌ Vercel Blob storage is not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.",
+      canProceed: isDevelopment, // Allow proceeding in development with localStorage fallback
+    };
+  }
+
+  return {
+    isConfigured: true,
+    message: "✅ Vercel Blob storage is properly configured.",
+    canProceed: true,
+  };
+};
+
+/**
+ * Development fallback storage when blob storage is not configured
+ */
+export const devFallbackStorage = {
+  saveQuestions: (questions: Question[]): void => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "fmib_quiz_questions_dev",
+        JSON.stringify(questions),
+      );
+      console.log("📝 Questions saved to localStorage (development fallback)");
+    }
+  },
+
+  getQuestions: (): Question[] => {
+    if (typeof window !== "undefined") {
+      const questionsData = localStorage.getItem("fmib_quiz_questions_dev");
+      if (questionsData) {
+        const questions = JSON.parse(questionsData);
+        console.log(
+          "📥 Questions loaded from localStorage (development fallback)",
+        );
+        return questions;
+      }
+    }
+
+    // Return default questions if nothing is stored
+    const defaultQuestions: Question[] = [
+      {
+        id: "dev-1",
+        question: "What is the capital of France? (Development Mode)",
+        answers: [
+          { id: "a1", text: "London", isCorrect: false },
+          { id: "a2", text: "Berlin", isCorrect: false },
+          { id: "a3", text: "Paris", isCorrect: true },
+          { id: "a4", text: "Madrid", isCorrect: false },
+        ],
+      },
+      {
+        id: "dev-2",
+        question: "What is 2 + 2? (Development Mode)",
+        answers: [
+          { id: "a3", text: "3", isCorrect: false },
+          { id: "a4", text: "4", isCorrect: true },
+          { id: "a5", text: "5", isCorrect: false },
+          { id: "a6", text: "22", isCorrect: false },
+        ],
+      },
+    ];
+
+    console.log("📝 Using default development questions");
+    return defaultQuestions;
+  },
+
+  clearQuestions: (): void => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("fmib_quiz_questions_dev");
+      console.log("🗑️ Development questions cleared from localStorage");
+    }
+  },
+};
+
+/**
+ * Show development configuration warning
+ */
+export const showDevWarning = (): void => {
+  const config = checkBlobStorageConfig();
+
+  if (!config.isConfigured && typeof window !== "undefined") {
+    console.log(`
+🚀 FMIB Quiz - Development Mode
+${config.message}
+
+To configure Vercel Blob storage:
+1. Go to your Vercel project dashboard
+2. Navigate to Storage tab
+3. Create a new Blob store
+4. Copy the BLOB_READ_WRITE_TOKEN
+5. Add it to your .env.local file
+
+For now, using localStorage for development.
+    `);
+  }
+};
 </file>
 
 <file path="src/lib/quizService.ts">
@@ -3460,264 +3388,6 @@ function verifyAnswers(questions: Question[], userAnswers: QuizAnswer[]): {
 }
 </file>
 
-<file path="src/pages/api/blob-questions.ts">
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { put, list, del } from '@vercel/blob'
-import { Question } from '@/types/quiz'
-
-const QUIZ_QUESTIONS_BLOB = 'quiz-questions.json'
-
-// Default questions fallback
-const getDefaultQuestions = (): Question[] => [
-  {
-    id: 'default-1',
-    question: 'What is the capital of France?',
-    answers: [
-      { id: 'a1', text: 'London', isCorrect: false },
-      { id: 'a2', text: 'Berlin', isCorrect: false },
-      { id: 'a3', text: 'Paris', isCorrect: true },
-      { id: 'a4', text: 'Madrid', isCorrect: false }
-    ]
-  },
-  {
-    id: 'default-2',
-    question: 'What is 2 + 2?',
-    answers: [
-      { id: 'a1', text: '3', isCorrect: false },
-      { id: 'a2', text: '4', isCorrect: true },
-      { id: 'a3', text: '5', isCorrect: false },
-      { id: 'a4', text: '22', isCorrect: false }
-    ]
-  }
-]
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  // Debug: Log the environment variable
-  console.log('🔍 Debug - BLOB_READ_WRITE_TOKEN:', process.env.BLOB_READ_WRITE_TOKEN ? 'SET' : 'NOT SET');
-  console.log('🔍 Debug - NODE_ENV:', process.env.NODE_ENV);
-
-  // Check BLOB_READ_WRITE_TOKEN
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return res.status(500).json({
-      success: false,
-      error: 'BLOB_READ_WRITE_TOKEN not configured',
-      message: 'Server-side blob storage not properly configured'
-    })
-  }
-
-  try {
-    switch (req.method) {
-      case 'GET':
-        return await handleGet(req, res)
-      case 'POST':
-        return await handlePost(req, res)
-      case 'DELETE':
-        return await handleDelete(req, res)
-      default:
-        res.setHeader('Allow', ['GET', 'POST', 'DELETE'])
-        return res.status(405).json({
-          success: false,
-          error: 'Method not allowed'
-        })
-    }
-  } catch (error: any) {
-    console.error('Blob API error:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      message: error.message
-    })
-  }
-}
-
-async function handleGet(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    // List blobs to find our questions file
-    const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB })
-
-    if (blobs.length === 0) {
-      console.log('📝 No questions found in blob storage, using default questions')
-      return res.status(200).json({
-        success: true,
-        data: getDefaultQuestions(),
-        source: 'default',
-        message: 'Using default questions (no questions found in blob storage)'
-      })
-    }
-
-    // Get the most recent version
-    const questionsBlob = blobs[0]
-    console.log(`📥 Fetching questions from: ${questionsBlob.url}`)
-
-    const response = await fetch(questionsBlob.url)
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch questions: ${response.statusText}`)
-    }
-
-    const questions: Question[] = await response.json()
-
-    // Validate the loaded questions
-    if (!Array.isArray(questions) || questions.length === 0) {
-      console.warn('⚠️ Invalid questions format in blob storage, using defaults')
-      return res.status(200).json({
-        success: true,
-        data: getDefaultQuestions(),
-        source: 'default',
-        message: 'Using default questions (invalid format in blob storage)'
-      })
-    }
-
-    console.log(`✅ Loaded ${questions.length} questions from blob storage`)
-    return res.status(200).json({
-      success: true,
-      data: questions,
-      source: 'blob',
-      message: `Successfully loaded ${questions.length} questions from blob storage`
-    })
-
-  } catch (error) {
-    console.error('❌ Error loading questions from blob storage:', error)
-    console.log('📝 Using default questions as fallback')
-
-    return res.status(200).json({
-      success: true,
-      data: getDefaultQuestions(),
-      source: 'default',
-      message: 'Using default questions (blob storage error)'
-    })
-  }
-}
-
-async function handlePost(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    const { questions } = req.body
-
-    // Validate questions structure
-    if (!Array.isArray(questions)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Questions must be an array'
-      })
-    }
-
-    // Validate each question
-    for (const question of questions) {
-      if (!question.id || !question.question || !Array.isArray(question.answers)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid question structure detected'
-        })
-      }
-
-      if (question.answers.length < 2) {
-        return res.status(400).json({
-          success: false,
-          error: 'Each question must have at least 2 answers'
-        })
-      }
-
-      const hasCorrectAnswer = question.answers.some((answer: any) => answer.isCorrect)
-      if (!hasCorrectAnswer) {
-        return res.status(400).json({
-          success: false,
-          error: 'Each question must have at least one correct answer'
-        })
-      }
-    }
-
-    // Create backup before saving new version
-    await createBackup(questions)
-
-    // Save to blob storage
-    const blob = await put(QUIZ_QUESTIONS_BLOB, JSON.stringify(questions, null, 2), {
-      access: 'public',
-      contentType: 'application/json',
-    })
-
-    console.log(`✅ Saved ${questions.length} questions to blob storage`)
-    return res.status(200).json({
-      success: true,
-      message: `Successfully saved ${questions.length} questions`,
-      data: {
-        url: blob.url,
-        uploadedAt: blob.uploadedAt
-      }
-    })
-
-  } catch (error: any) {
-    console.error('❌ Error saving questions to blob storage:', error)
-
-    // Enhanced error analysis
-    if (error.message.includes('401') || error.message.includes('403')) {
-      return res.status(403).json({
-        success: false,
-        error: 'Permission denied',
-        message: 'Check your BLOB_READ_WRITE_TOKEN permissions'
-      })
-    }
-
-    if (error.message.includes('404')) {
-      return res.status(404).json({
-        success: false,
-        error: 'Blob store not found',
-        message: 'Ensure you created a blob store in Vercel dashboard'
-      })
-    }
-
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to save questions',
-      message: error.message
-    })
-  }
-}
-
-async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB })
-
-    if (blobs.length > 0) {
-      await del(blobs.map(blob => blob.url))
-      console.log('🗑️ Deleted questions from blob storage')
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Questions deleted successfully'
-    })
-
-  } catch (error: any) {
-    console.error('❌ Error deleting questions from blob storage:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to delete questions',
-      message: error.message
-    })
-  }
-}
-
-async function createBackup(questions: Question[]) {
-  try {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFilename = `quiz-questions-backup-${timestamp}.json`;
-
-    await put(backupFilename, JSON.stringify(questions, null, 2), {
-      access: 'public',
-      contentType: 'application/json',
-    });
-
-    console.log(`💾 Created backup: ${backupFilename}`);
-  } catch (error) {
-    console.warn('⚠️ Failed to create backup:', error);
-    // Don't throw here - backup failure shouldn't stop the main operation
-  }
-}
-</file>
-
 <file path="src/pages/_document.tsx">
 import { Html, Head, Main, NextScript } from "next/document";
 
@@ -3737,253 +3407,6 @@ export default function Document() {
     </Html>
   );
 }
-</file>
-
-<file path="src/pages/debug-blob.tsx">
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import { useState, useEffect } from 'react'
-import Layout from '@/components/layout/Layout'
-
-interface DebugInfo {
-  timestamp: string
-  environment: string
-  hasToken: boolean
-  tokenLength: number
-  tokenPrefix: string
-  tests: {
-    tokenValidation: any
-    listTest: any
-    putTest: any
-    cleanupTest?: any
-  }
-  recommendations: string[]
-  error?: string
-  details?: string
-}
-
-const DebugPage: NextPage = () => {
-  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [healthStatus, setHealthStatus] = useState<{ healthy: boolean; message: string } | null>(null)
-
-  const runDebugTest = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch('/api/debug-blob')
-      const data = await response.json()
-
-      if (!response.ok) {
-        console.error('Debug API error:', data)
-        setDebugInfo({
-          ...data,
-          timestamp: new Date().toISOString(),
-          environment: 'unknown',
-          hasToken: false,
-          tokenLength: 0,
-          tokenPrefix: 'none',
-          tests: {},
-          recommendations: data.error ? [data.error] : []
-        })
-      } else {
-        setDebugInfo(data)
-      }
-    } catch (error) {
-      console.error('Debug test failed:', error)
-      setDebugInfo({
-        timestamp: new Date().toISOString(),
-        environment: 'unknown',
-        hasToken: false,
-        tokenLength: 0,
-        tokenPrefix: 'none',
-        tests: {},
-        recommendations: ['Failed to connect to debug API', String(error)],
-        error: 'Network error'
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <>
-      <Head>
-        <title>Blob Storage Debug - FMIB Quiz</title>
-        <meta name="description" content="Debug Vercel Blob storage configuration" />
-      </Head>
-
-      <Layout title="Blob Storage Debug">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                🔍 Vercel Blob Storage Debug
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Debug and troubleshoot your Vercel Blob storage configuration
-              </p>
-            </div>
-
-            {/* Quick Health Status */}
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center">
-                <span className="text-blue-800 font-medium">
-                  🔍 Server-side blob storage testing via API
-                </span>
-              </div>
-            </div>
-
-            {/* Run Debug Button */}
-            <div className="mb-8">
-              <button
-                onClick={runDebugTest}
-                disabled={isLoading}
-                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Running Debug Tests...' : '🔍 Run Comprehensive Debug Test'}
-              </button>
-            </div>
-
-            {/* Debug Results */}
-            {debugInfo && (
-              <div className="space-y-6">
-                {/* Environment Info */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                    📊 Environment Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Environment:</span>
-                      <p className="text-lg font-mono text-gray-900 dark:text-white">{debugInfo.environment}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Timestamp:</span>
-                      <p className="text-sm font-mono text-gray-900 dark:text-white">{debugInfo.timestamp}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Token Present:</span>
-                      <p className="text-lg font-mono text-gray-900 dark:text-white">{debugInfo.hasToken ? '✅ Yes' : '❌ No'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Token Length:</span>
-                      <p className="text-lg font-mono text-gray-900 dark:text-white">{debugInfo.tokenLength || 0}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Test Results */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                    🧪 Test Results
-                  </h2>
-                  <div className="space-y-4">
-                    {Object.entries(debugInfo.tests).map(([testName, result]) => (
-                      <div key={testName} className="border-l-4 pl-4 border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center mb-2">
-                          <span className={`text-lg font-medium ${
-                            result.success ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {result.success ? '✅' : '❌'} {testName}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 dark:text-gray-300">{result.message}</p>
-                        {result.error && (
-                          <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                            Error: {result.error}
-                          </p>
-                        )}
-                        {result.details && (
-                          <details className="mt-2">
-                            <summary className="text-sm text-blue-600 dark:text-blue-400 cursor-pointer">
-                              Technical Details
-                            </summary>
-                            <pre className="text-xs text-gray-600 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-gray-900 p-2 rounded overflow-x-auto">
-                              {JSON.stringify(result.details, null, 2)}
-                            </pre>
-                          </details>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Recommendations */}
-                {debugInfo.recommendations.length > 0 && (
-                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                      💡 Recommendations
-                    </h2>
-                    <div className="space-y-2">
-                      {debugInfo.recommendations.map((recommendation, index) => (
-                        <div key={index} className="flex items-start">
-                          <span className="text-blue-600 dark:text-blue-400 mr-2 mt-1">
-                            {index + 1}.
-                          </span>
-                          <p className="text-gray-700 dark:text-gray-300">{recommendation}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Configuration Status */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                    ⚙️ Configuration Status
-                  </h2>
-                  <div className={`p-4 rounded-lg ${
-                    debugInfo.configuration.isConfigured
-                      ? 'bg-green-50 border border-green-200'
-                      : 'bg-yellow-50 border border-yellow-200'
-                  }`}>
-                    <p className={`font-medium ${
-                      debugInfo.configuration.isConfigured
-                        ? 'text-green-800'
-                        : 'text-yellow-800'
-                    }`}>
-                      {debugInfo.configuration.message}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Manual Testing Section */}
-            <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                🛠️ Manual Testing Steps
-              </h2>
-              <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
-                <li>Check your Vercel dashboard → Storage → Blob stores</li>
-                <li>Ensure you have a blob store created</li>
-                <li>Copy the BLOB_READ_WRITE_TOKEN</li>
-                <li>Add it to your environment variables</li>
-                <li>Run the debug test above</li>
-                <li>Try creating a test question in the admin panel</li>
-              </ol>
-            </div>
-
-            {/* Environment Variables Info */}
-            <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                📝 Environment Variables
-              </h3>
-              <div className="space-y-1 text-blue-700 dark:text-blue-300">
-                <p><strong>Development:</strong> Add to .env.local file</p>
-                <p><strong>Production:</strong> Set in Vercel dashboard → Settings → Environment Variables</p>
-                <p><strong>Variable Name:</strong> BLOB_READ_WRITE_TOKEN</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    </>
-  )
-}
-
-export default DebugPage
 </file>
 
 <file path="next.config.ts">
@@ -4608,6 +4031,407 @@ export const migrateFromLocalStorage = async (): Promise<{
 };
 </file>
 
+<file path="src/pages/api/blob-questions.ts">
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { put, list, del } from '@vercel/blob'
+import { Question } from '@/types/quiz'
+
+const QUIZ_QUESTIONS_BLOB = 'quiz-questions.json'
+
+// Default questions fallback
+const getDefaultQuestions = (): Question[] => [
+  {
+    id: 'default-1',
+    question: 'What is the capital of France?',
+    answers: [
+      { id: 'a1', text: 'London', isCorrect: false },
+      { id: 'a2', text: 'Berlin', isCorrect: false },
+      { id: 'a3', text: 'Paris', isCorrect: true },
+      { id: 'a4', text: 'Madrid', isCorrect: false }
+    ]
+  },
+  {
+    id: 'default-2',
+    question: 'What is 2 + 2?',
+    answers: [
+      { id: 'a1', text: '3', isCorrect: false },
+      { id: 'a2', text: '4', isCorrect: true },
+      { id: 'a3', text: '5', isCorrect: false },
+      { id: 'a4', text: '22', isCorrect: false }
+    ]
+  }
+]
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // Debug: Log the environment variable
+  console.log('🔍 Debug - BLOB_READ_WRITE_TOKEN:', process.env.BLOB_READ_WRITE_TOKEN ? 'SET' : 'NOT SET');
+  console.log('🔍 Debug - NODE_ENV:', process.env.NODE_ENV);
+
+  // Check BLOB_READ_WRITE_TOKEN
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return res.status(500).json({
+      success: false,
+      error: 'BLOB_READ_WRITE_TOKEN not configured',
+      message: 'Server-side blob storage not properly configured'
+    })
+  }
+
+  try {
+    switch (req.method) {
+      case 'GET':
+        return await handleGet(req, res)
+      case 'POST':
+        return await handlePost(req, res)
+      case 'DELETE':
+        return await handleDelete(req, res)
+      default:
+        res.setHeader('Allow', ['GET', 'POST', 'DELETE'])
+        return res.status(405).json({
+          success: false,
+          error: 'Method not allowed'
+        })
+    }
+  } catch (error: any) {
+    console.error('Blob API error:', error)
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    })
+  }
+}
+
+async function handleGet(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    // List blobs to find our questions file
+    const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB })
+
+    if (blobs.length === 0) {
+      console.log('📝 No questions found in blob storage, using default questions')
+      return res.status(200).json({
+        success: true,
+        data: getDefaultQuestions(),
+        source: 'default',
+        message: 'Using default questions (no questions found in blob storage)'
+      })
+    }
+
+    // Get the most recent version
+    const questionsBlob = blobs[0]
+    console.log(`📥 Fetching questions from: ${questionsBlob.url}`)
+
+    const response = await fetch(questionsBlob.url)
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch questions: ${response.statusText}`)
+    }
+
+    const questions: Question[] = await response.json()
+
+    // Validate the loaded questions
+    if (!Array.isArray(questions) || questions.length === 0) {
+      console.warn('⚠️ Invalid questions format in blob storage, using defaults')
+      return res.status(200).json({
+        success: true,
+        data: getDefaultQuestions(),
+        source: 'default',
+        message: 'Using default questions (invalid format in blob storage)'
+      })
+    }
+
+    console.log(`✅ Loaded ${questions.length} questions from blob storage`)
+    return res.status(200).json({
+      success: true,
+      data: questions,
+      source: 'blob',
+      message: `Successfully loaded ${questions.length} questions from blob storage`
+    })
+
+  } catch (error) {
+    console.error('❌ Error loading questions from blob storage:', error)
+    console.log('📝 Using default questions as fallback')
+
+    return res.status(200).json({
+      success: true,
+      data: getDefaultQuestions(),
+      source: 'default',
+      message: 'Using default questions (blob storage error)'
+    })
+  }
+}
+
+async function handlePost(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const { questions } = req.body
+
+    // Validate questions structure
+    if (!Array.isArray(questions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Questions must be an array'
+      })
+    }
+
+    // Validate each question
+    for (const question of questions) {
+      if (!question.id || !question.question || !Array.isArray(question.answers)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid question structure detected'
+        })
+      }
+
+      if (question.answers.length < 2) {
+        return res.status(400).json({
+          success: false,
+          error: 'Each question must have at least 2 answers'
+        })
+      }
+
+      const hasCorrectAnswer = question.answers.some((answer: any) => answer.isCorrect)
+      if (!hasCorrectAnswer) {
+        return res.status(400).json({
+          success: false,
+          error: 'Each question must have at least one correct answer'
+        })
+      }
+    }
+
+    // Create backup before saving new version
+    await createBackup(questions)
+
+    // Save to blob storage
+    const blob = await put(QUIZ_QUESTIONS_BLOB, JSON.stringify(questions, null, 2), {
+      access: 'public',
+      contentType: 'application/json',
+      allowOverwrite: true,
+    })
+
+    console.log(`✅ Saved ${questions.length} questions to blob storage`)
+    return res.status(200).json({
+      success: true,
+      message: `Successfully saved ${questions.length} questions`,
+      data: {
+        url: blob.url,
+        uploadedAt: new Date().toISOString()
+      }
+    })
+
+  } catch (error: any) {
+    console.error('❌ Error saving questions to blob storage:', error)
+
+    // Enhanced error analysis
+    if (error.message.includes('401') || error.message.includes('403')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Permission denied',
+        message: 'Check your BLOB_READ_WRITE_TOKEN permissions'
+      })
+    }
+
+    if (error.message.includes('404')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Blob store not found',
+        message: 'Ensure you created a blob store in Vercel dashboard'
+      })
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to save questions',
+      message: error.message
+    })
+  }
+}
+
+async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB })
+
+    if (blobs.length > 0) {
+      await del(blobs.map(blob => blob.url))
+      console.log('🗑️ Deleted questions from blob storage')
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Questions deleted successfully'
+    })
+
+  } catch (error: any) {
+    console.error('❌ Error deleting questions from blob storage:', error)
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to delete questions',
+      message: error.message
+    })
+  }
+}
+
+async function createBackup(questions: Question[]) {
+  try {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupFilename = `quiz-questions-backup-${timestamp}.json`;
+
+    await put(backupFilename, JSON.stringify(questions, null, 2), {
+      access: 'public',
+      contentType: 'application/json',
+    });
+
+    console.log(`💾 Created backup: ${backupFilename}`);
+  } catch (error) {
+    console.warn('⚠️ Failed to create backup:', error);
+    // Don't throw here - backup failure shouldn't stop the main operation
+  }
+}
+</file>
+
+<file path="src/pages/api/debug-blob.ts">
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { put, list } from '@vercel/blob'
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // Log to Vercel function logs (visible in dashboard)
+  console.log('=== ENV DEBUG START ===');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('BLOB_READ_WRITE_TOKEN present:', !!process.env.BLOB_READ_WRITE_TOKEN && process.env.BLOB_READ_WRITE_TOKEN.length > 0 ? 'YES' : 'NO (EMPTY OR MISSING)');
+  console.log('BLOB_READ_WRITE_TOKEN length:', process.env.BLOB_READ_WRITE_TOKEN ? process.env.BLOB_READ_WRITE_TOKEN.length : 0); // Length only, not value
+  console.log('All env keys (non-sensitive):', Object.keys(process.env).filter(key => !key.includes('TOKEN') && !key.includes('KEY') && !key.includes('SECRET')));
+  console.log('=== ENV DEBUG END ===');
+
+  // Return a safe summary (no sensitive data)
+  const envSummary: any = {
+    nodeEnv: process.env.NODE_ENV,
+    blobTokenPresent: !!process.env.BLOB_READ_WRITE_TOKEN && process.env.BLOB_READ_WRITE_TOKEN.length > 0,
+    totalEnvVars: Object.keys(process.env).length,
+    sampleNonSensitive: Object.keys(process.env).filter(key => key.startsWith('NEXT_')).slice(0, 3), // Example non-sensitive keys
+    timestamp: new Date().toISOString(),
+    tests: {} as any
+  };
+
+  try {
+    // Test 1: Token validation
+    envSummary.tests.tokenValidation = {
+      success: envSummary.blobTokenPresent,
+      message: envSummary.blobTokenPresent
+        ? `Token present and properly configured`
+        : 'Token missing or empty'
+    }
+
+    if (!envSummary.blobTokenPresent) {
+      return res.status(400).json({
+        ...envSummary,
+        error: 'BLOB_READ_WRITE_TOKEN not configured',
+        recommendations: ['Add BLOB_READ_WRITE_TOKEN to environment variables in Vercel dashboard']
+      })
+    }
+
+    // Test 2: List operation
+    try {
+      const result = await list()
+      envSummary.tests.listTest = {
+        success: true,
+        message: `Successfully listed ${result.blobs.length} blobs`,
+        details: {
+          blobCount: result.blobs.length,
+          blobNames: result.blobs.map(b => b.pathname)
+        }
+      }
+    } catch (error: any) {
+      envSummary.tests.listTest = {
+        success: false,
+        message: 'List operation failed',
+        error: error.message
+      }
+    }
+
+    // Test 3: Put operation (only if list succeeded)
+    if (envSummary.tests.listTest.success) {
+      try {
+        const testData = { test: true, timestamp: new Date().toISOString() }
+        const blob = await put('debug-test.json', JSON.stringify(testData), {
+          access: 'public',
+          contentType: 'application/json'
+        })
+
+        envSummary.tests.putTest = {
+          success: true,
+          message: 'Successfully created test file',
+          details: {
+            url: blob.url,
+            uploadedAt: new Date().toISOString()
+          }
+        }
+
+        // Clean up - delete the test file
+        try {
+          const { del } = await import('@vercel/blob')
+          await del(blob.url)
+          envSummary.tests.cleanupTest = {
+            success: true,
+            message: 'Successfully cleaned up test file'
+          }
+        } catch (cleanupError) {
+          envSummary.tests.cleanupTest = {
+            success: false,
+            message: 'Failed to cleanup test file',
+            error: (cleanupError as Error).message
+          }
+        }
+
+      } catch (error: any) {
+        envSummary.tests.putTest = {
+          success: false,
+          message: 'Put operation failed',
+          error: error.message
+        }
+      }
+    }
+
+    // Generate recommendations
+    const recommendations = []
+    if (!envSummary.blobTokenPresent) {
+      recommendations.push('Add BLOB_READ_WRITE_TOKEN to environment variables')
+    }
+    if (!envSummary.tests.listTest.success) {
+      if (envSummary.tests.listTest.error?.includes('401') || envSummary.tests.listTest.error?.includes('403')) {
+        recommendations.push('Check your BLOB_READ_WRITE_TOKEN permissions')
+        recommendations.push('Regenerate the token in Vercel dashboard')
+      }
+      if (envSummary.tests.listTest.error?.includes('404')) {
+        recommendations.push('Create a blob store in Vercel dashboard')
+      }
+    }
+    if (!envSummary.tests.putTest.success && envSummary.tests.listTest.success) {
+      recommendations.push('Check write permissions for your blob store')
+    }
+
+    envSummary.recommendations = recommendations
+
+    return res.status(200).json(envSummary)
+
+  } catch (error: any) {
+    console.error('Debug API error:', error)
+    return res.status(500).json({
+      ...envSummary,
+      error: 'Internal server error during debug',
+      details: error.message
+    })
+  }
+}
+</file>
+
 <file path="src/lib/storage.ts">
 // Quiz data types
 export interface QuizAnswer {
@@ -5000,342 +4824,272 @@ function sendQuestionsResponse(res: NextApiResponse, questions: Question[], sour
 }
 </file>
 
-<file path="src/pages/admin.tsx">
+<file path="src/pages/debug-blob.tsx">
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Layout from '@/components/layout/Layout'
-import QuestionForm from '@/components/admin/QuestionForm'
-import QuestionList from '@/components/admin/QuestionList'
-import { Question } from '@/types/quiz'
-import { blobStorage } from '@/lib/blob-storage'
-import { storage } from '@/lib/storage'
 
-type AdminView = 'list' | 'add' | 'edit'
+interface EnvSummary {
+  success: boolean
+  nodeEnv: string
+  blobTokenPresent: boolean
+  totalEnvVars: number
+  sampleNonSensitive: string[]
+  timestamp: string
+  tests: {
+    tokenValidation: any
+    listTest: any
+    putTest: any
+    cleanupTest?: any
+  }
+  recommendations: string[]
+  error?: string
+  details?: string
+}
 
-const AdminPage: NextPage = () => {
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [currentView, setCurrentView] = useState<AdminView>('list')
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+const DebugPage: NextPage = () => {
+  const [envSummary, setEnvSummary] = useState<EnvSummary | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Load questions from blob storage on mount
-  useEffect(() => {
-    const loadQuestions = async () => {
-      try {
-        console.log('🔄 Starting to load questions...')
-        setIsLoading(true)
-        const loadedQuestions = await blobStorage.getQuestions()
-        console.log('✅ Questions loaded:', loadedQuestions)
-        console.log('📊 Questions count:', loadedQuestions.length)
-        setQuestions(loadedQuestions)
-        console.log('🎯 Questions state set')
-      } catch (error) {
-        console.error('❌ Failed to load questions:', error)
-        setSaveError('Failed to load questions. Please try refreshing the page.')
-      } finally {
-        console.log('🏁 Loading finished, setting isLoading to false')
-        setIsLoading(false)
-      }
-    }
-
-    loadQuestions()
-  }, [])
-
-  // Save questions to blob storage whenever they change
-  const saveQuestions = async (updatedQuestions: Question[]) => {
+  const runDebugTest = async () => {
+    setIsLoading(true)
     try {
-      setIsSaving(true)
-      setSaveError(null)
-      setQuestions(updatedQuestions)
-      await blobStorage.saveQuestions(updatedQuestions)
-      console.log('✅ Questions saved successfully')
-    } catch (error) {
-      console.error('❌ Failed to save questions:', error)
-      setSaveError('Failed to save questions. Please try again.')
-      // Revert to previous state on error
-      setQuestions(questions)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleAddQuestion = () => {
-    setEditingQuestion(null)
-    setCurrentView('add')
-  }
-
-  const handleEditQuestion = (question: Question) => {
-    setEditingQuestion(question)
-    setCurrentView('edit')
-  }
-
-  const handleSaveQuestion = async (question: Question) => {
-    if (currentView === 'edit' && editingQuestion) {
-      // Update existing question
-      await saveQuestions(questions.map(q => q.id === question.id ? question : q))
-    } else {
-      // Add new question
-      await saveQuestions([...questions, question])
-    }
-    setCurrentView('list')
-    setEditingQuestion(null)
-  }
-
-  const handleDeleteQuestion = async (questionId: string) => {
-    if (window.confirm('Are you sure you want to delete this question?')) {
-      await saveQuestions(questions.filter(q => q.id !== questionId))
-    }
-  }
-
-  const handleCancel = () => {
-    setCurrentView('list')
-    setEditingQuestion(null)
-  }
-
-  const handleExportQuestions = () => {
-    const dataStr = JSON.stringify(questions, null, 2)
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
-
-    const exportFileDefaultName = `quiz-questions-${new Date().toISOString().split('T')[0]}.json`
-
-    const linkElement = document.createElement('a')
-    linkElement.setAttribute('href', dataUri)
-    linkElement.setAttribute('download', exportFileDefaultName)
-    linkElement.click()
-  }
-
-  const handleImportQuestions = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        try {
-          const importedQuestions = JSON.parse(e.target?.result as string)
-          if (Array.isArray(importedQuestions)) {
-            await saveQuestions(importedQuestions)
-            alert('Questions imported successfully!')
-          } else {
-            alert('Invalid file format. Please upload a valid questions file.')
-          }
-        } catch (error) {
-          alert('Error importing questions. Please check the file format.')
-        }
-      }
-      reader.readAsText(file)
-    }
-    // Reset the input
-    event.target.value = ''
-  }
-
-  const handleClearAll = async () => {
-    if (window.confirm('Are you sure you want to delete all questions? This action cannot be undone.')) {
-      await saveQuestions([])
-    }
-  }
-
-  // New blob storage specific handlers
-  const handleViewStorageInfo = async () => {
-    try {
-      // Call debug API to get storage info
       const response = await fetch('/api/debug-blob')
-      const info = await response.json()
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(info.error || 'Failed to get storage info')
+        console.error('Debug API error:', data)
+        setEnvSummary({
+          success: false,
+          nodeEnv: 'unknown',
+          blobTokenPresent: false,
+          totalEnvVars: 0,
+          sampleNonSensitive: [],
+          timestamp: new Date().toISOString(),
+          tests: {
+            tokenValidation: { success: false, message: 'API Error' },
+            listTest: { success: false, message: 'API Error' },
+            putTest: { success: false, message: 'API Error' }
+          },
+          recommendations: data.error ? [data.error] : [],
+          error: data.error || 'API Error'
+        })
+      } else {
+        setEnvSummary(data)
       }
-
-      const message = `
-Storage Information:
-• Environment: ${info.environment}
-• Token Configured: ${info.hasToken ? '✅ Yes' : '❌ No'}
-• Total Questions: ${info.tests.listTest?.details?.blobCount || 0} blobs found
-• Storage Type: Vercel Blob Storage
-
-Your quiz questions are stored securely in Vercel Blob storage and will persist across deployments.
-Automatic backups are created when you save questions.
-      `.trim()
-
-      alert(message)
     } catch (error) {
-      console.error('Failed to get storage info:', error)
-      alert('❌ Failed to retrieve storage information.')
+      console.error('Debug test failed:', error)
+      setEnvSummary({
+        success: false,
+        nodeEnv: 'unknown',
+        blobTokenPresent: false,
+        totalEnvVars: 0,
+        sampleNonSensitive: [],
+        timestamp: new Date().toISOString(),
+        tests: {
+          tokenValidation: { success: false, message: 'Network Error' },
+          listTest: { success: false, message: 'Network Error' },
+          putTest: { success: false, message: 'Network Error' }
+        },
+        recommendations: ['Failed to connect to debug API', String(error)],
+        error: 'Network error'
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <>
       <Head>
-        <title>Quiz Admin - FMIB Quiz</title>
-        <meta name="description" content="Admin interface for managing quiz questions" />
+        <title>Blob Storage Debug - FMIB Quiz</title>
+        <meta name="description" content="Debug Vercel Blob storage configuration" />
       </Head>
 
-      <Layout title="Quiz Admin">
+      <Layout title="Blob Storage Debug">
         <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Quiz Admin Panel
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                🔍 Vercel Blob Storage Debug
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Manage your quiz questions and answers
+              <p className="text-gray-600 dark:text-gray-400">
+                Debug and troubleshoot your Vercel Blob storage configuration
               </p>
             </div>
 
-            {currentView === 'list' && (
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleExportQuestions}
-                  disabled={questions.length === 0 || isSaving}
-                  className="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  Export
-                </button>
-
-                <label className="px-4 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed">
-                  Import
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleImportQuestions}
-                    disabled={isSaving}
-                    className="hidden"
-                  />
-                </label>
-
-                
-                <button
-                  onClick={handleViewStorageInfo}
-                  className="px-4 py-2 bg-teal-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"
-                >
-                  Storage Info
-                </button>
-
-                <button
-                  onClick={handleClearAll}
-                  disabled={questions.length === 0 || isSaving}
-                  className="px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  Clear All
-                </button>
-
-                <button
-                  onClick={handleAddQuestion}
-                  className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  Add Question
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Questions</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{questions.length}</p>
-                </div>
+            {/* Environment Status Summary */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-blue-800 font-medium">
+                  🔍 Server-side environment variable debugging via API
+                </span>
+                {envSummary && (
+                  <span className={`text-sm font-medium ${
+                    envSummary.blobTokenPresent ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {envSummary.blobTokenPresent ? '✅ Token Present' : '❌ Token Missing'}
+                  </span>
+                )}
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Answers</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {questions.reduce((sum, q) => sum + q.answers.length, 0)}
-                  </p>
-                </div>
-              </div>
+            {/* Run Debug Button */}
+            <div className="mb-8">
+              <button
+                onClick={runDebugTest}
+                disabled={isLoading}
+                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Running Debug Tests...' : '🔍 Check Environment Variables'}
+              </button>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ready for Quiz</p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {questions.length > 0 ? 'Yes' : 'No'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Storage Status */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Storage Type</p>
-                  <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    Vercel Blob ✨
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Persistent across deployments
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Error Display */}
-          {saveError && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Error</h3>
-                  <p className="mt-1 text-sm text-red-700">{saveError}</p>
-                </div>
-                <div className="ml-auto pl-3">
-                  <button
-                    onClick={() => setSaveError(null)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Main Content */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="p-6">
-              {isLoading ? (
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading questions from Vercel Blob...</p>
+            {/* Debug Results */}
+            {envSummary && (
+              <div className="space-y-6">
+                {/* Environment Info */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                    📊 Environment Information
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Environment:</span>
+                      <p className="text-lg font-mono text-gray-900 dark:text-white">{envSummary.nodeEnv}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Timestamp:</span>
+                      <p className="text-sm font-mono text-gray-900 dark:text-white">{envSummary.timestamp}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">BLOB Token Present:</span>
+                      <p className="text-lg font-mono text-gray-900 dark:text-white">
+                        {envSummary.blobTokenPresent ? '✅ Yes' : '❌ No'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Env Vars:</span>
+                      <p className="text-lg font-mono text-gray-900 dark:text-white">{envSummary.totalEnvVars}</p>
+                    </div>
+                    {envSummary.sampleNonSensitive.length > 0 && (
+                      <div className="md:col-span-2">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Sample Non-Sensitive Vars:</span>
+                        <p className="text-sm font-mono text-gray-900 dark:text-white">
+                          {envSummary.sampleNonSensitive.join(', ')}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ) : currentView === 'list' ? (
-                <QuestionList
-                  questions={questions}
-                  onEdit={handleEditQuestion}
-                  onDelete={handleDeleteQuestion}
-                />
-              ) : (
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">
-                    {currentView === 'edit' ? 'Edit Question' : 'Add New Question'}
+
+                {/* Test Results */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                    🧪 Test Results
                   </h2>
-                  <QuestionForm
-                    question={editingQuestion || undefined}
-                    onSave={handleSaveQuestion}
-                    onCancel={handleCancel}
-                  />
+                  <div className="space-y-4">
+                    {Object.entries(envSummary.tests).map(([testName, result]) => (
+                      <div key={testName} className="border-l-4 pl-4 border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center mb-2">
+                          <span className={`text-lg font-medium ${
+                            result.success ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {result.success ? '✅' : '❌'} {testName}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 dark:text-gray-300">{result.message}</p>
+                        {result.error && (
+                          <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                            Error: {result.error}
+                          </p>
+                        )}
+                        {result.details && (
+                          <details className="mt-2">
+                            <summary className="text-sm text-blue-600 dark:text-blue-400 cursor-pointer">
+                              Technical Details
+                            </summary>
+                            <pre className="text-xs text-gray-600 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-gray-900 p-2 rounded overflow-x-auto">
+                              {JSON.stringify(result.details, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
+
+                {/* Recommendations */}
+                {envSummary.recommendations.length > 0 && (
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                      💡 Recommendations
+                    </h2>
+                    <div className="space-y-2">
+                      {envSummary.recommendations.map((recommendation, index) => (
+                        <div key={index} className="flex items-start">
+                          <span className="text-blue-600 dark:text-blue-400 mr-2 mt-1">
+                            {index + 1}.
+                          </span>
+                          <p className="text-gray-700 dark:text-gray-300">{recommendation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Configuration Status */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                    ⚙️ Configuration Status
+                  </h2>
+                  <div className={`p-4 rounded-lg ${
+                    envSummary.blobTokenPresent
+                      ? 'bg-green-50 border border-green-200'
+                      : 'bg-red-50 border border-red-200'
+                  }`}>
+                    <p className={`font-medium ${
+                      envSummary.blobTokenPresent
+                        ? 'text-green-800'
+                        : 'text-red-800'
+                    }`}>
+                      {envSummary.blobTokenPresent
+                        ? '✅ BLOB_READ_WRITE_TOKEN is properly configured!'
+                        : '❌ BLOB_READ_WRITE_TOKEN is missing or empty. Check Vercel dashboard settings.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Manual Testing Section */}
+            <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                🛠️ Manual Testing Steps
+              </h2>
+              <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+                <li>Check your Vercel dashboard → Storage → Blob stores</li>
+                <li>Ensure you have a blob store created</li>
+                <li>Copy the BLOB_READ_WRITE_TOKEN</li>
+                <li>Add it to your environment variables</li>
+                <li>Run the debug test above</li>
+                <li>Try creating a test question in the admin panel</li>
+              </ol>
+            </div>
+
+            {/* Environment Variables Info */}
+            <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                📝 Environment Variables
+              </h3>
+              <div className="space-y-1 text-blue-700 dark:text-blue-300">
+                <p><strong>Development:</strong> Add to .env.local file</p>
+                <p><strong>Production:</strong> Set in Vercel dashboard → Settings → Environment Variables</p>
+                <p><strong>Variable Name:</strong> BLOB_READ_WRITE_TOKEN</p>
+              </div>
             </div>
           </div>
         </div>
@@ -5344,7 +5098,7 @@ Automatic backups are created when you save questions.
   )
 }
 
-export default AdminPage
+export default DebugPage
 </file>
 
 <file path="src/pages/index.tsx">
@@ -5604,6 +5358,395 @@ body {
     scroll-behavior: auto !important;
   }
 }
+</file>
+
+<file path="src/pages/admin.tsx">
+import type { NextPage } from "next";
+import Head from "next/head";
+import { useState, useEffect } from "react";
+import Layout from "@/components/layout/Layout";
+import QuestionForm from "@/components/admin/QuestionForm";
+import QuestionList from "@/components/admin/QuestionList";
+import { Question } from "@/types/quiz";
+import { blobStorage } from "@/lib/blob-storage";
+
+type AdminView = "list" | "add" | "edit";
+
+const AdminPage: NextPage = () => {
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentView, setCurrentView] = useState<AdminView>("list");
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Load questions from blob storage on mount
+  useEffect(() => {
+    const loadQuestions = async () => {
+      try {
+        console.log("🔄 Starting to load questions...");
+        setIsLoading(true);
+        const loadedQuestions = await blobStorage.getQuestions();
+        console.log("✅ Questions loaded:", loadedQuestions);
+        console.log("📊 Questions count:", loadedQuestions.length);
+        setQuestions(loadedQuestions);
+        console.log("🎯 Questions state set");
+      } catch (error) {
+        console.error("❌ Failed to load questions:", error);
+        setSaveError(
+          "Failed to load questions. Please try refreshing the page.",
+        );
+      } finally {
+        console.log("🏁 Loading finished, setting isLoading to false");
+        setIsLoading(false);
+      }
+    };
+
+    loadQuestions();
+  }, []);
+
+  // Save questions to blob storage whenever they change
+  const saveQuestions = async (updatedQuestions: Question[]) => {
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+      setQuestions(updatedQuestions);
+      await blobStorage.saveQuestions(updatedQuestions);
+      console.log("✅ Questions saved successfully");
+    } catch (error) {
+      console.error("❌ Failed to save questions:", error);
+      setSaveError("Failed to save questions. Please try again.");
+      // Revert to previous state on error
+      setQuestions(questions);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddQuestion = () => {
+    setEditingQuestion(null);
+    setCurrentView("add");
+  };
+
+  const handleEditQuestion = (question: Question) => {
+    setEditingQuestion(question);
+    setCurrentView("edit");
+  };
+
+  const handleSaveQuestion = async (question: Question) => {
+    if (currentView === "edit" && editingQuestion) {
+      // Update existing question
+      await saveQuestions(
+        questions.map((q) => (q.id === question.id ? question : q)),
+      );
+    } else {
+      // Add new question
+      await saveQuestions([...questions, question]);
+    }
+    setCurrentView("list");
+    setEditingQuestion(null);
+  };
+
+  const handleDeleteQuestion = async (questionId: string) => {
+    if (window.confirm("Are you sure you want to delete this question?")) {
+      await saveQuestions(questions.filter((q) => q.id !== questionId));
+    }
+  };
+
+  const handleCancel = () => {
+    setCurrentView("list");
+    setEditingQuestion(null);
+  };
+
+  const handleExportQuestions = () => {
+    const dataStr = JSON.stringify(questions, null, 2);
+    const dataUri =
+      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = `quiz-questions-${new Date().toISOString().split("T")[0]}.json`;
+
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", dataUri);
+    linkElement.setAttribute("download", exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const handleImportQuestions = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const importedQuestions = JSON.parse(e.target?.result as string);
+          if (Array.isArray(importedQuestions)) {
+            await saveQuestions(importedQuestions);
+            alert("Questions imported successfully!");
+          } else {
+            alert("Invalid file format. Please upload a valid questions file.");
+          }
+        } catch (error) {
+          alert("Error importing questions. Please check the file format.");
+        }
+      };
+      reader.readAsText(file);
+    }
+    // Reset the input
+    event.target.value = "";
+  };
+
+  const handleClearAll = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete all questions? This action cannot be undone.",
+      )
+    ) {
+      await saveQuestions([]);
+    }
+  };
+
+  // New blob storage specific handlers
+  const handleViewStorageInfo = async () => {
+    try {
+      // Call debug API to get storage info
+      const response = await fetch("/api/debug-blob");
+      const info = await response.json();
+
+      if (!response.ok) {
+        throw new Error(info.error || "Failed to get storage info");
+      }
+
+      const message = `
+Storage Information:
+• Environment: ${info.environment}
+• Token Configured: ${info.hasToken ? "✅ Yes" : "❌ No"}
+• Total Questions: ${info.tests.listTest?.details?.blobCount || 0} blobs found
+• Storage Type: Vercel Blob Storage
+
+Your quiz questions are stored securely in Vercel Blob storage and will persist across deployments.
+Automatic backups are created when you save questions.
+      `.trim();
+
+      alert(message);
+    } catch (error) {
+      console.error("Failed to get storage info:", error);
+      alert("❌ Failed to retrieve storage information.");
+    }
+  };
+
+  return (
+    <>
+      <Head>
+        <title>Quiz Admin - FMIB Quiz</title>
+        <meta
+          name="description"
+          content="Admin interface for managing quiz questions"
+        />
+      </Head>
+
+      <Layout title="Quiz Admin">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Quiz Admin Panel
+              </h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
+                Manage your quiz questions and answers
+              </p>
+            </div>
+
+            {currentView === "list" && (
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={handleExportQuestions}
+                  disabled={questions.length === 0 || isSaving}
+                  className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                >
+                  Export
+                </button>
+
+                <label className="cursor-pointer rounded-md bg-purple-600 px-4 py-2 font-medium text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-400">
+                  Import
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportQuestions}
+                    disabled={isSaving}
+                    className="hidden"
+                  />
+                </label>
+
+                <button
+                  onClick={handleViewStorageInfo}
+                  className="rounded-md bg-teal-600 px-4 py-2 font-medium text-white transition-colors hover:bg-teal-700"
+                >
+                  Storage Info
+                </button>
+
+                <button
+                  onClick={handleClearAll}
+                  disabled={questions.length === 0 || isSaving}
+                  className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                >
+                  Clear All
+                </button>
+
+                <button
+                  onClick={handleAddQuestion}
+                  className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+                >
+                  Add Question
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Total Questions
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {questions.length}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Total Answers
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {questions.reduce((sum, q) => sum + q.answers.length, 0)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Ready for Quiz
+                  </p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {questions.length > 0 ? "Yes" : "No"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Storage Status */}
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Storage Type
+                  </p>
+                  <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                    Vercel Blob ✨
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Persistent across deployments
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {saveError && (
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-red-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                  <p className="mt-1 text-sm text-red-700">{saveError}</p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <button
+                    onClick={() => setSaveError(null)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="p-6">
+              {isLoading ? (
+                <div className="py-12 text-center">
+                  <div className="inline-flex items-center space-x-2">
+                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Loading questions from Vercel Blob...
+                    </p>
+                  </div>
+                </div>
+              ) : currentView === "list" ? (
+                <QuestionList
+                  questions={questions}
+                  onEdit={handleEditQuestion}
+                  onDelete={handleDeleteQuestion}
+                />
+              ) : (
+                <div>
+                  <h2 className="mb-6 text-xl font-semibold text-gray-800 dark:text-white">
+                    {currentView === "edit"
+                      ? "Edit Question"
+                      : "Add New Question"}
+                  </h2>
+                  <QuestionForm
+                    question={editingQuestion || undefined}
+                    onSave={handleSaveQuestion}
+                    onCancel={handleCancel}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </Layout>
+    </>
+  );
+};
+
+export default AdminPage;
 </file>
 
 <file path="src/pages/certificate.tsx">

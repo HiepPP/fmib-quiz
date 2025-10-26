@@ -156,8 +156,8 @@ const AdminPage: NextPage = () => {
 
       const message = `
 Storage Information:
-• Environment: ${info.environment}
-• Token Configured: ${info.hasToken ? "✅ Yes" : "❌ No"}
+• Environment: ${info.nodeEnv}
+• Token Configured: ${info.blobTokenPresent ? "✅ Yes" : "❌ No"}
 • Total Questions: ${info.tests.listTest?.details?.blobCount || 0} blobs found
 • Storage Type: Vercel Blob Storage
 
