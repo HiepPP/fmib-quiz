@@ -95,21 +95,58 @@ export const devFallbackStorage = {
 };
 
 /**
+ * Development utility for handling database storage configuration
+ */
+export const checkDbStorageConfig = (): {
+  isConfigured: boolean;
+  message: string;
+  canProceed: boolean;
+} => {
+  // Check if we're in development mode
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  // Check if database is configured
+  const hasDbConnection = !!(
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING
+  );
+
+  if (!hasDbConnection) {
+    return {
+      isConfigured: false,
+      message: isDevelopment
+        ? "⚠️ Vercel Postgres is not configured. Using localStorage for development. To use database storage, set POSTGRES_URL in your .env.local file."
+        : "❌ Vercel Postgres is not configured. Please set POSTGRES_URL environment variable.",
+      canProceed: isDevelopment, // Allow proceeding in development with localStorage fallback
+    };
+  }
+
+  return {
+    isConfigured: true,
+    message: "✅ Vercel Postgres is properly configured.",
+    canProceed: true,
+  };
+};
+
+/**
  * Show development configuration warning
  */
 export const showDevWarning = (): void => {
-  const config = checkBlobStorageConfig();
+  const blobConfig = checkBlobStorageConfig();
+  const dbConfig = checkDbStorageConfig();
 
-  if (!config.isConfigured && typeof window !== "undefined") {
+  if ((!blobConfig.isConfigured || !dbConfig.isConfigured) && typeof window !== "undefined") {
     console.log(`
 🚀 FMIB Quiz - Development Mode
-${config.message}
+${!dbConfig.isConfigured ? dbConfig.message : ''}
+${!blobConfig.isConfigured ? blobConfig.message : ''}
 
-To configure Vercel Blob storage:
+To configure Vercel Postgres:
 1. Go to your Vercel project dashboard
 2. Navigate to Storage tab
-3. Create a new Blob store
-4. Copy the BLOB_READ_WRITE_TOKEN
+3. Create a new Postgres database
+4. Copy the POSTGRES_URL
 5. Add it to your .env.local file
 
 For now, using localStorage for development.

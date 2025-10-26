@@ -5,7 +5,7 @@ import Layout from "@/components/layout/Layout";
 import QuestionForm from "@/components/admin/QuestionForm";
 import QuestionList from "@/components/admin/QuestionList";
 import { Question } from "@/types/quiz";
-import { blobStorage } from "@/lib/blob-storage";
+import { quizStorage } from "@/lib/quiz-storage";
 
 type AdminView = "list" | "add" | "edit";
 
@@ -20,18 +20,18 @@ const AdminPage: NextPage = () => {
     null,
   );
 
-  // Check if blob storage is configured
-  const checkBlobConfiguration = async () => {
+  // Check if database storage is configured
+  const checkDatabaseConfiguration = async () => {
     try {
-      const response = await fetch("/api/debug-blob");
+      const response = await fetch("/api/debug-db");
       if (response.ok) {
         const info = await response.json();
-        setIsBlobConfigured(info.blobTokenPresent);
+        setIsBlobConfigured(info.dbConfigured);
       } else {
         setIsBlobConfigured(false);
       }
     } catch (error) {
-      console.error("Failed to check blob configuration:", error);
+      console.error("Failed to check database configuration:", error);
       setIsBlobConfigured(false);
     }
   };
@@ -43,10 +43,10 @@ const AdminPage: NextPage = () => {
         console.log("🔄 Starting to load questions...");
         setIsLoading(true);
 
-        // Check blob configuration first
-        await checkBlobConfiguration();
+        // Check database configuration first
+        await checkDatabaseConfiguration();
 
-        const loadedQuestions = await blobStorage.getQuestions();
+        const loadedQuestions = await quizStorage.getQuestions();
         console.log("✅ Questions loaded:", loadedQuestions);
         console.log("📊 Questions count:", loadedQuestions.length);
         setQuestions(loadedQuestions);
@@ -71,7 +71,7 @@ const AdminPage: NextPage = () => {
       setIsSaving(true);
       setSaveError(null);
       setQuestions(updatedQuestions);
-      await blobStorage.saveQuestions(updatedQuestions);
+      await quizStorage.saveQuestions(updatedQuestions);
       console.log("✅ Questions saved successfully");
     } catch (error) {
       console.error("❌ Failed to save questions:", error);
@@ -170,7 +170,7 @@ const AdminPage: NextPage = () => {
   const handleViewStorageInfo = async () => {
     try {
       // Call debug API to get storage info
-      const response = await fetch("/api/debug-blob");
+      const response = await fetch("/api/debug-db");
       const info = await response.json();
 
       if (!response.ok) {
@@ -178,20 +178,21 @@ const AdminPage: NextPage = () => {
       }
 
       const message = `
-Storage Information:
+Database Information:
 • Environment: ${info.nodeEnv}
-• Token Configured: ${info.blobTokenPresent ? "✅ Yes" : "❌ No"}
-• Total Questions: ${info.tests.listTest?.details?.blobCount || 0} blobs found
-• Storage Type: Vercel Blob Storage
+• Database Configured: ${info.dbConfigured ? "✅ Yes" : "❌ No"}
+• Connection Status: ${info.tests.connectionTest?.success ? "✅ Connected" : "❌ Failed"}
+• Total Questions: ${info.tests.queryTest?.details?.questionCount || 0} questions found
+• Storage Type: Vercel Postgres Database
 
-Your quiz questions are stored securely in Vercel Blob storage and will persist across deployments.
-Automatic backups are created when you save questions.
+Your quiz questions are stored securely in Vercel Postgres database and will persist across deployments.
+Automatic backups are handled by Vercel Postgres.
       `.trim();
 
       alert(message);
     } catch (error) {
       console.error("Failed to get storage info:", error);
-      alert("❌ Failed to retrieve storage information.");
+      alert("❌ Failed to retrieve database information.");
     }
   };
 
@@ -314,11 +315,11 @@ Automatic backups are created when you save questions.
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     Storage Type
                   </p>
-                  <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    Vercel Blob ✨
+                  <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                    Vercel Postgres 🗄️
                   </p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Persistent across deployments
+                    Relational database with automatic backups
                   </p>
                 </div>
               </div>
