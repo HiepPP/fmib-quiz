@@ -16,6 +16,25 @@ const AdminPage: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isBlobConfigured, setIsBlobConfigured] = useState<boolean | null>(
+    null,
+  );
+
+  // Check if blob storage is configured
+  const checkBlobConfiguration = async () => {
+    try {
+      const response = await fetch("/api/debug-blob");
+      if (response.ok) {
+        const info = await response.json();
+        setIsBlobConfigured(info.blobTokenPresent);
+      } else {
+        setIsBlobConfigured(false);
+      }
+    } catch (error) {
+      console.error("Failed to check blob configuration:", error);
+      setIsBlobConfigured(false);
+    }
+  };
 
   // Load questions from blob storage on mount
   useEffect(() => {
@@ -23,6 +42,10 @@ const AdminPage: NextPage = () => {
       try {
         console.log("🔄 Starting to load questions...");
         setIsLoading(true);
+
+        // Check blob configuration first
+        await checkBlobConfiguration();
+
         const loadedQuestions = await blobStorage.getQuestions();
         console.log("✅ Questions loaded:", loadedQuestions);
         console.log("📊 Questions count:", loadedQuestions.length);
@@ -216,12 +239,14 @@ Automatic backups are created when you save questions.
                   />
                 </label>
 
-                <button
-                  onClick={handleViewStorageInfo}
-                  className="rounded-md bg-teal-600 px-4 py-2 font-medium text-white transition-colors hover:bg-teal-700"
-                >
-                  Storage Info
-                </button>
+                {isBlobConfigured && (
+                  <button
+                    onClick={handleViewStorageInfo}
+                    className="rounded-md bg-teal-600 px-4 py-2 font-medium text-white transition-colors hover:bg-teal-700"
+                  >
+                    Storage Info
+                  </button>
+                )}
 
                 <button
                   onClick={handleClearAll}
