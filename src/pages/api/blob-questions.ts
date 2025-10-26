@@ -169,7 +169,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     // Create backup before saving new version
     await createBackup(questions)
 
-    // Save to blob storage
+    // Save to blob storage (file will be created if it doesn't exist)
+    console.log(`💾 Creating/updating blob file: ${QUIZ_QUESTIONS_BLOB}`)
     const blob = await put(QUIZ_QUESTIONS_BLOB, JSON.stringify(questions, null, 2), {
       access: 'public',
       contentType: 'application/json',
@@ -177,9 +178,10 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     })
 
     console.log(`✅ Saved ${questions.length} questions to blob storage`)
+    console.log(`📁 Blob file created/updated: ${blob.url}`)
     return res.status(200).json({
       success: true,
-      message: `Successfully saved ${questions.length} questions`,
+      message: `Successfully saved ${questions.length} questions (file created/updated)`,
       data: {
         url: blob.url,
         uploadedAt: new Date().toISOString()

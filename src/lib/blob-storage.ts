@@ -93,6 +93,7 @@ export const blobStorage = {
       }
 
       console.log(`📤 Saving ${questions.length} questions via API...`);
+      console.log('💾 Blob file will be created if it doesn\'t exist');
 
       // Call API to save questions
       const response = await fetch('/api/blob-questions', {
@@ -110,6 +111,7 @@ export const blobStorage = {
       }
 
       console.log(`✅ Successfully saved ${questions.length} questions via API`);
+      console.log(`📁 Blob file created/updated at: ${result.data?.url || 'api-success'}`);
       return {
         url: result.data?.url || 'api-success',
         uploadedAt: result.data?.uploadedAt ? new Date(result.data.uploadedAt) : new Date()
