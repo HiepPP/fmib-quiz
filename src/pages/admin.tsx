@@ -88,6 +88,7 @@ const AdminPage: NextPage = () => {
     setCurrentView("add");
   };
 
+  
   const handleEditQuestion = (question: Question) => {
     setEditingQuestion(question);
     setCurrentView("edit");
@@ -118,6 +119,7 @@ const AdminPage: NextPage = () => {
     setEditingQuestion(null);
   };
 
+  
   const handleExportQuestions = () => {
     const dataStr = JSON.stringify(questions, null, 2);
     const dataUri =
@@ -147,6 +149,7 @@ const AdminPage: NextPage = () => {
             alert("Invalid file format. Please upload a valid questions file.");
           }
         } catch (error) {
+          console.error("Error importing questions:", error);
           alert("Error importing questions. Please check the file format.");
         }
       };
@@ -257,11 +260,18 @@ Automatic backups are handled by Vercel Postgres.
                   Clear All
                 </button>
 
+                <a
+                  href="/admin/question-manage"
+                  className="inline-flex rounded-md bg-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:bg-indigo-700"
+                >
+                  Manage Questions
+                </a>
+
                 <button
                   onClick={handleAddQuestion}
                   className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
                 >
-                  Add Question
+                  Quick Add
                 </button>
               </div>
             )}
