@@ -25,6 +25,7 @@ const AdminDebugPage: NextPage = () => {
         setError(null);
 
         const loadedQuestions = await blobStorage.getQuestions();
+        console.log("Loaded questions:", loadedQuestions);
         addLog(
           `✅ Questions loaded: ${JSON.stringify(loadedQuestions, null, 2)}`,
         );
