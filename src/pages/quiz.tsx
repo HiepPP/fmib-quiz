@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/AnimatedLoading";
 import { UserInfo, Question, QuizAnswer } from "@/types/quiz";
 import { storage, isSessionExpired } from "@/lib/storage";
+import { blobStorage } from "@/lib/blob-storage";
 import { quizService, type QuizServiceResponse } from "@/lib/quizService";
 
 type QuizStep = "info" | "quiz" | "results";
@@ -104,49 +105,65 @@ const QuizPage: NextPage = () => {
     }
   }, [currentStep, quizResult]);
 
-  // Check for existing session on mount
+  // Check for existing session on mount and load questions from blob storage
   useEffect(() => {
-    const existingSession = storage.getQuizSession();
-    const savedQuestions = storage.getQuestions();
+    const loadQuestionsAndSession = async () => {
+      try {
+        const existingSession = storage.getQuizSession();
 
-    if (savedQuestions.length === 0) {
-      setError(
-        "Không có câu hỏi trắc nghiệm nào. Vui lòng liên hệ quản trị viên.",
-      );
-      setIsLoading(false);
-      return;
-    }
+        // Load questions from blob storage API
+        console.log("📥 Loading questions from blob storage...");
+        const questionsFromBlob = await blobStorage.getQuestions();
 
-    setQuestions(savedQuestions);
+        if (questionsFromBlob.length === 0) {
+          setError(
+            "Không có câu hỏi trắc nghiệm nào. Vui lòng liên hệ quản trị viên.",
+          );
+          setIsLoading(false);
+          return;
+        }
 
-    // Load existing answers into state for faster access
-    const userAnswers = storage.getUserAnswers();
-    const answersMap = new Map<string, string>();
-    userAnswers.forEach((answer) => {
-      answersMap.set(answer.questionId, answer.answerId);
-    });
-    setSelectedAnswers(answersMap);
+        // Save questions to localStorage for fallback and performance
+        storage.saveQuestions(questionsFromBlob);
+        setQuestions(questionsFromBlob);
 
-    if (
-      existingSession &&
-      !existingSession.isCompleted &&
-      !isSessionExpired(existingSession.startTime)
-    ) {
-      // Resume existing session
-      setUserInfo(existingSession.userInfo);
-      setCurrentQuestionIndex(existingSession.currentQuestionIndex);
-      setSessionStartTime(existingSession.startTime);
-      setCurrentStep("quiz");
-    } else if (existingSession && existingSession.isCompleted) {
-      // Show completed results
-      setUserInfo(existingSession.userInfo);
-      setCurrentStep("results");
-    } else if (existingSession && isSessionExpired(existingSession.startTime)) {
-      // Clear expired session
-      storage.clearQuizSession();
-    }
+        // Load existing answers into state for faster access
+        const userAnswers = storage.getUserAnswers();
+        const answersMap = new Map<string, string>();
+        userAnswers.forEach((answer) => {
+          answersMap.set(answer.questionId, answer.answerId);
+        });
+        setSelectedAnswers(answersMap);
 
-    setIsLoading(false);
+        if (
+          existingSession &&
+          !existingSession.isCompleted &&
+          !isSessionExpired(existingSession.startTime)
+        ) {
+          // Resume existing session
+          setUserInfo(existingSession.userInfo);
+          setCurrentQuestionIndex(existingSession.currentQuestionIndex);
+          setSessionStartTime(existingSession.startTime);
+          setCurrentStep("quiz");
+        } else if (existingSession && existingSession.isCompleted) {
+          // Show completed results
+          setUserInfo(existingSession.userInfo);
+          setCurrentStep("results");
+        } else if (existingSession && isSessionExpired(existingSession.startTime)) {
+          // Clear expired session
+          storage.clearQuizSession();
+        }
+      } catch (error) {
+        console.error("❌ Error loading questions from blob storage:", error);
+        setError(
+          "Không thể tải câu hỏi từ máy chủ. Vui lòng liên hệ quản trị viên.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadQuestionsAndSession();
   }, []);
 
   // Get current selected answer from local state (much faster than localStorage)
