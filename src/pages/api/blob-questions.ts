@@ -90,9 +90,12 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    // Get the most recent version
-    const questionsBlob = blobs[0];
-    console.log(`📥 Fetching questions from: ${questionsBlob.url}`);
+    // Get the most recent version (sort by uploadedAt descending)
+    const sortedBlobs = blobs.sort((a, b) =>
+      new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+    );
+    const questionsBlob = sortedBlobs[0];
+    console.log(`📥 Fetching questions from: ${questionsBlob.url} (uploaded: ${questionsBlob.uploadedAt})`);
 
     const response = await fetch(questionsBlob.url);
 
