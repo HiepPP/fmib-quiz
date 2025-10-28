@@ -1,9 +1,9 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Question } from "@/types/quiz";
-import { quizStorage } from "@/lib/quiz-storage";
 
 const QuestionManagePage: NextPage = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -15,18 +15,33 @@ const QuestionManagePage: NextPage = () => {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        console.log("🔄 Starting to load questions for management...");
+        console.log("🔄 Starting to load questions from blob storage for management...");
         setIsLoading(true);
 
-        const loadedQuestions = await quizStorage.getQuestions();
-        console.log("✅ Questions loaded for management:", loadedQuestions);
+        // Load questions from Vercel Blob storage
+        const response = await fetch('/api/blob-questions', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || result.message || 'Failed to load questions from blob storage');
+        }
+
+        const loadedQuestions = result.data;
+        console.log("✅ Questions loaded from blob storage for management:", loadedQuestions);
         console.log("📊 Questions count:", loadedQuestions.length);
+        console.log("📁 Source:", result.source);
         setQuestions(loadedQuestions);
         console.log("🎯 Questions state set");
       } catch (error) {
-        console.error("❌ Failed to load questions:", error);
+        console.error("❌ Failed to load questions from blob storage:", error);
         setSaveError(
-          "Failed to load questions. Please try refreshing the page.",
+          "Failed to load questions from blob storage. Please try refreshing the page.",
         );
       } finally {
         console.log("🏁 Loading finished, setting isLoading to false");
@@ -38,6 +53,7 @@ const QuestionManagePage: NextPage = () => {
   }, []);
 
   // Form state for adding questions
+  // Form state for adding multiple questions
   const [formData, setFormData] = useState({
     question: "",
     answers: [
@@ -47,6 +63,9 @@ const QuestionManagePage: NextPage = () => {
       { id: "4", text: "", isCorrect: false },
     ],
   });
+
+  // State for tracking questions to be added in batch
+  const [pendingQuestions, setPendingQuestions] = useState<Question[]>([]);
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData({ ...formData, question: e.target.value });
@@ -69,7 +88,7 @@ const QuestionManagePage: NextPage = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleAddToPending = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
@@ -90,41 +109,84 @@ const QuestionManagePage: NextPage = () => {
       return;
     }
 
+    // Add to pending questions
+    const newQuestion: Question = {
+      id: Date.now().toString(),
+      question: formData.question.trim(),
+      answers: validAnswers,
+    };
+
+    setPendingQuestions([...pendingQuestions, newQuestion]);
+
+    // Reset form for next question
+    setFormData({
+      question: "",
+      answers: [
+        { id: "1", text: "", isCorrect: false },
+        { id: "2", text: "", isCorrect: false },
+        { id: "3", text: "", isCorrect: false },
+        { id: "4", text: "", isCorrect: false },
+      ],
+    });
+
+    alert("Question added to batch! You can add more questions or save all.");
+  };
+
+  const handleSaveAllQuestions = async () => {
+    if (pendingQuestions.length === 0) {
+      alert("No questions to save. Please add questions first.");
+      return;
+    }
+
     try {
       setIsSaving(true);
       setSaveError(null);
 
-      const newQuestion: Question = {
-        id: Date.now().toString(),
-        question: formData.question.trim(),
-        answers: validAnswers,
-      };
+      const updatedQuestions = [...questions, ...pendingQuestions];
 
-      const updatedQuestions = [...questions, newQuestion];
+      // Save to Vercel Blob storage as JSON file
+      const response = await fetch('/api/blob-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ questions: updatedQuestions }),
+      });
 
-      // Save to storage
-      await quizStorage.saveQuestions(updatedQuestions);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || result.message || 'Failed to save questions to blob storage');
+      }
 
       // Update state
       setQuestions(updatedQuestions);
 
-      // Reset form
-      setFormData({
-        question: "",
-        answers: [
-          { id: "1", text: "", isCorrect: false },
-          { id: "2", text: "", isCorrect: false },
-          { id: "3", text: "", isCorrect: false },
-          { id: "4", text: "", isCorrect: false },
-        ],
-      });
+      // Clear pending questions
+      setPendingQuestions([]);
 
-      alert("Question added successfully!");
+      alert(`${pendingQuestions.length} question(s) saved successfully to blob storage!`);
+      console.log('✅ Questions saved to blob storage:', result.data?.url);
     } catch (error) {
-      console.error("Failed to save question:", error);
-      setSaveError("Failed to save question. Please try again.");
+      console.error("Failed to save questions to blob storage:", error);
+      setSaveError(`Failed to save to blob storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    handleAddToPending(e);
+  };
+
+  const handleRemoveFromPending = (questionId: string) => {
+    setPendingQuestions(pendingQuestions.filter(q => q.id !== questionId));
+  };
+
+  const handleClearPending = () => {
+    if (window.confirm("Are you sure you want to clear all pending questions?")) {
+      setPendingQuestions([]);
     }
   };
 
@@ -136,16 +198,29 @@ const QuestionManagePage: NextPage = () => {
 
         const updatedQuestions = questions.filter((q) => q.id !== questionId);
 
-        // Save to storage
-        await quizStorage.saveQuestions(updatedQuestions);
+        // Save to Vercel Blob storage
+        const response = await fetch('/api/blob-questions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ questions: updatedQuestions }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || result.message || 'Failed to update questions in blob storage');
+        }
 
         // Update state
         setQuestions(updatedQuestions);
 
-        alert("Question deleted successfully!");
+        alert("Question deleted successfully from blob storage!");
+        console.log('✅ Questions updated in blob storage:', result.data?.url);
       } catch (error) {
-        console.error("Failed to delete question:", error);
-        setSaveError("Failed to delete question. Please try again.");
+        console.error("Failed to delete question from blob storage:", error);
+        setSaveError(`Failed to delete question: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setIsSaving(false);
       }
@@ -190,6 +265,7 @@ const QuestionManagePage: NextPage = () => {
             alert("Invalid file format. Please upload a valid questions file.");
           }
         } catch (error) {
+          console.error("Import error:", error);
           alert("Error importing questions. Please check the file format.");
           setSaveError("Error importing questions. Please check the file format.");
         } finally {
@@ -205,23 +281,35 @@ const QuestionManagePage: NextPage = () => {
   const handleClearAll = async () => {
     if (
       window.confirm(
-        "Are you sure you want to delete all questions? This action cannot be undone."
+        "Are you sure you want to delete all questions from blob storage? This action cannot be undone."
       )
     ) {
       try {
         setIsSaving(true);
         setSaveError(null);
 
-        // Save to storage
-        await quizStorage.saveQuestions([]);
+        // Delete all questions from blob storage
+        const response = await fetch('/api/blob-questions', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || result.message || 'Failed to clear questions from blob storage');
+        }
 
         // Update state
         setQuestions([]);
 
-        alert("All questions cleared successfully!");
+        alert("All questions cleared successfully from blob storage!");
+        console.log('✅ All questions deleted from blob storage');
       } catch (error) {
-        console.error("Failed to clear questions:", error);
-        setSaveError("Failed to clear questions. Please try again.");
+        console.error("Failed to clear questions from blob storage:", error);
+        setSaveError(`Failed to clear questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         setIsSaving(false);
       }
@@ -286,12 +374,12 @@ const QuestionManagePage: NextPage = () => {
                   >
                     Clear All
                   </button>
-                  <a
+                  <Link
                     href="/admin"
                     className="rounded-md bg-gray-600 px-4 py-2 font-medium text-white transition-colors hover:bg-gray-700"
                   >
                     Back to Admin
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -342,7 +430,7 @@ const QuestionManagePage: NextPage = () => {
                 {/* Add New Question Form */}
                 <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Add New Question
+                    Add New Question ({pendingQuestions.length} pending)
                   </h3>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
@@ -417,10 +505,100 @@ const QuestionManagePage: NextPage = () => {
                         disabled={isSaving}
                         className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
-                        {isSaving ? "Saving..." : "Add Question"}
+                        {isSaving ? "Adding..." : "Add to Batch"}
                       </button>
+                      {pendingQuestions.length > 0 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleSaveAllQuestions}
+                            disabled={isSaving}
+                            className="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-400"
+                          >
+                            {isSaving ? "Saving..." : `Save All (${pendingQuestions.length})`}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleClearPending}
+                            disabled={isSaving}
+                            className="px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-400"
+                          >
+                            Clear Batch
+                          </button>
+                        </>
+                      )}
                     </div>
                   </form>
+
+                  {/* Pending Questions Section */}
+                  {pendingQuestions.length > 0 && (
+                    <div className="mt-6 border-t border-gray-200 dark:border-gray-600 pt-6">
+                      <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-3">
+                        Pending Questions ({pendingQuestions.length})
+                      </h4>
+                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                        {pendingQuestions.map((question, qIndex) => (
+                          <div
+                            key={question.id}
+                            className="border border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h5 className="font-medium text-gray-900 dark:text-white text-sm mb-1">
+                                  {qIndex + 1}. {question.question}
+                                </h5>
+                                <div className="space-y-1">
+                                  {question.answers.map((answer, aIndex) => (
+                                    <div
+                                      key={answer.id}
+                                      className="flex items-center space-x-2 text-xs"
+                                    >
+                                      <span className="font-medium text-gray-600 dark:text-gray-400">
+                                        {String.fromCharCode(65 + aIndex)}.
+                                      </span>
+                                      <span
+                                        className={`flex-1 ${
+                                          answer.isCorrect
+                                            ? "text-green-600 dark:text-green-400 font-medium"
+                                            : "text-gray-700 dark:text-gray-300"
+                                        }`}
+                                      >
+                                        {answer.text}
+                                      </span>
+                                      {answer.isCorrect && (
+                                        <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-1 py-0.5 rounded">
+                                          ✓
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveFromPending(question.id)}
+                                disabled={isSaving}
+                                className="ml-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:cursor-not-allowed disabled:text-gray-400"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Questions List */}

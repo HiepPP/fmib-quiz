@@ -75,11 +75,6 @@ export default async function handler(
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   try {
-    return res.json({
-      debug: "BLOB_READ_WRITE_TOKEN",
-      value: process.env.BLOB_READ_WRITE_TOKEN,
-      message: "Debug: Environment variable value"
-    });
     // List blobs to find our questions file
     const { blobs } = await list({ prefix: QUIZ_QUESTIONS_BLOB });
 
