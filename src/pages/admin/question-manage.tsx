@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Question } from "@/types/quiz";
+import { quizStorage } from "../../lib/quiz-storage";
+import { Dialog } from "@/components/ui/Dialog";
 
 const QuestionManagePage: NextPage = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -11,29 +13,61 @@ const QuestionManagePage: NextPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Dialog state management
+  const [dialogState, setDialogState] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info" as "info" | "success" | "error" | "warning" | "confirm",
+    onConfirm: undefined as (() => void) | undefined,
+  });
+
+  // Helper function to show dialog
+  const showDialog = (
+    title: string,
+    message: string,
+    type: "info" | "success" | "error" | "warning" | "confirm" = "info",
+    onConfirm?: () => void,
+  ) => {
+    setDialogState({ isOpen: true, title, message, type, onConfirm });
+  };
+
+  const closeDialog = () => {
+    setDialogState((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // Load questions on mount
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        console.log("🔄 Starting to load questions from blob storage for management...");
+        console.log(
+          "🔄 Starting to load questions from blob storage for management...",
+        );
         setIsLoading(true);
 
         // Load questions from Vercel Blob storage
-        const response = await fetch('/api/blob-questions', {
-          method: 'GET',
+        const response = await fetch("/api/blob-questions", {
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.error || result.message || 'Failed to load questions from blob storage');
+          throw new Error(
+            result.error ||
+              result.message ||
+              "Failed to load questions from blob storage",
+          );
         }
 
         const loadedQuestions = result.data;
-        console.log("✅ Questions loaded from blob storage for management:", loadedQuestions);
+        console.log(
+          "✅ Questions loaded from blob storage for management:",
+          loadedQuestions,
+        );
         console.log("📊 Questions count:", loadedQuestions.length);
         console.log("📁 Source:", result.source);
         setQuestions(loadedQuestions);
@@ -74,7 +108,7 @@ const QuestionManagePage: NextPage = () => {
   const handleAnswerChange = (
     answerId: string,
     field: "text" | "isCorrect",
-    value: string | boolean
+    value: string | boolean,
   ) => {
     setFormData({
       ...formData,
@@ -83,7 +117,7 @@ const QuestionManagePage: NextPage = () => {
           ? { ...answer, [field]: value }
           : field === "isCorrect" && value === true
             ? { ...answer, isCorrect: false }
-            : answer
+            : answer,
       ),
     });
   };
@@ -93,19 +127,21 @@ const QuestionManagePage: NextPage = () => {
 
     // Validation
     if (!formData.question.trim()) {
-      alert("Please enter a question");
+      showDialog("Missing Question", "Please enter a question", "warning");
       return;
     }
 
-    const validAnswers = formData.answers.filter((answer) => answer.text.trim());
+    const validAnswers = formData.answers.filter((answer) =>
+      answer.text.trim(),
+    );
     if (validAnswers.length < 2) {
-      alert("Please provide at least 2 answers");
+      showDialog("Insufficient Answers", "Please provide at least 2 answers", "warning");
       return;
     }
 
     const hasCorrectAnswer = validAnswers.some((answer) => answer.isCorrect);
     if (!hasCorrectAnswer) {
-      alert("Please mark at least one answer as correct");
+      showDialog("No Correct Answer", "Please mark at least one answer as correct", "warning");
       return;
     }
 
@@ -128,13 +164,11 @@ const QuestionManagePage: NextPage = () => {
         { id: "4", text: "", isCorrect: false },
       ],
     });
-
-    alert("Question added to batch! You can add more questions or save all.");
   };
 
   const handleSaveAllQuestions = async () => {
     if (pendingQuestions.length === 0) {
-      alert("No questions to save. Please add questions first.");
+      showDialog("No Pending Questions", "No questions to save. Please add questions first.", "info");
       return;
     }
 
@@ -145,10 +179,10 @@ const QuestionManagePage: NextPage = () => {
       const updatedQuestions = [...questions, ...pendingQuestions];
 
       // Save to Vercel Blob storage as JSON file
-      const response = await fetch('/api/blob-questions', {
-        method: 'POST',
+      const response = await fetch("/api/blob-questions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ questions: updatedQuestions }),
       });
@@ -156,7 +190,11 @@ const QuestionManagePage: NextPage = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || result.message || 'Failed to save questions to blob storage');
+        throw new Error(
+          result.error ||
+            result.message ||
+            "Failed to save questions to blob storage",
+        );
       }
 
       // Update state
@@ -165,11 +203,17 @@ const QuestionManagePage: NextPage = () => {
       // Clear pending questions
       setPendingQuestions([]);
 
-      alert(`${pendingQuestions.length} question(s) saved successfully to blob storage!`);
-      console.log('✅ Questions saved to blob storage:', result.data?.url);
+      showDialog(
+        "Success",
+        `${pendingQuestions.length} question(s) saved successfully to blob storage!`,
+        "success"
+      );
+      console.log("✅ Questions saved to blob storage:", result.data?.url);
     } catch (error) {
       console.error("Failed to save questions to blob storage:", error);
-      setSaveError(`Failed to save to blob storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setSaveError(
+        `Failed to save to blob storage: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setIsSaving(false);
     }
@@ -181,59 +225,75 @@ const QuestionManagePage: NextPage = () => {
   };
 
   const handleRemoveFromPending = (questionId: string) => {
-    setPendingQuestions(pendingQuestions.filter(q => q.id !== questionId));
+    setPendingQuestions(pendingQuestions.filter((q) => q.id !== questionId));
   };
 
   const handleClearPending = () => {
-    if (window.confirm("Are you sure you want to clear all pending questions?")) {
-      setPendingQuestions([]);
-    }
+    showDialog(
+      "Clear Pending Questions",
+      "Are you sure you want to clear all pending questions?",
+      "confirm",
+      () => {
+        setPendingQuestions([]);
+      }
+    );
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    if (window.confirm("Are you sure you want to delete this question?")) {
-      try {
-        setIsSaving(true);
-        setSaveError(null);
+    showDialog(
+      "Delete Question",
+      "Are you sure you want to delete this question?",
+      "confirm",
+      async () => {
+        try {
+          setIsSaving(true);
+          setSaveError(null);
 
-        const updatedQuestions = questions.filter((q) => q.id !== questionId);
+          const updatedQuestions = questions.filter((q) => q.id !== questionId);
 
-        // Save to Vercel Blob storage
-        const response = await fetch('/api/blob-questions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ questions: updatedQuestions }),
-        });
+          // Save to Vercel Blob storage
+          const response = await fetch("/api/blob-questions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ questions: updatedQuestions }),
+          });
 
-        const result = await response.json();
+          const result = await response.json();
 
-        if (!response.ok) {
-          throw new Error(result.error || result.message || 'Failed to update questions in blob storage');
+          if (!response.ok) {
+            throw new Error(
+              result.error ||
+                result.message ||
+                "Failed to update questions in blob storage",
+            );
+          }
+
+          // Update state
+          setQuestions(updatedQuestions);
+
+          showDialog("Success", "Question deleted successfully from blob storage!", "success");
+          console.log("✅ Questions updated in blob storage:", result.data?.url);
+        } catch (error) {
+          console.error("Failed to delete question from blob storage:", error);
+          setSaveError(
+            `Failed to delete question: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+        } finally {
+          setIsSaving(false);
         }
-
-        // Update state
-        setQuestions(updatedQuestions);
-
-        alert("Question deleted successfully from blob storage!");
-        console.log('✅ Questions updated in blob storage:', result.data?.url);
-      } catch (error) {
-        console.error("Failed to delete question from blob storage:", error);
-        setSaveError(`Failed to delete question: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      } finally {
-        setIsSaving(false);
       }
-    }
+    );
   };
 
   const handleExportQuestions = () => {
     const dataStr = JSON.stringify(questions, null, 2);
     const dataUri =
       "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `quiz-questions-${new Date()
-      .toISOString()
-      .split("T")[0]}.json`;
+    const exportFileDefaultName = `quiz-questions-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
 
     const linkElement = document.createElement("a");
     linkElement.setAttribute("href", dataUri);
@@ -242,7 +302,7 @@ const QuestionManagePage: NextPage = () => {
   };
 
   const handleImportQuestions = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -260,14 +320,16 @@ const QuestionManagePage: NextPage = () => {
             // Update state
             setQuestions(importedQuestions);
 
-            alert("Questions imported successfully!");
+            showDialog("Success", "Questions imported successfully!", "success");
           } else {
-            alert("Invalid file format. Please upload a valid questions file.");
+            showDialog("Invalid File", "Invalid file format. Please upload a valid questions file.", "error");
           }
         } catch (error) {
           console.error("Import error:", error);
-          alert("Error importing questions. Please check the file format.");
-          setSaveError("Error importing questions. Please check the file format.");
+          showDialog("Import Error", "Error importing questions. Please check the file format.", "error");
+          setSaveError(
+            "Error importing questions. Please check the file format.",
+          );
         } finally {
           setIsSaving(false);
         }
@@ -279,41 +341,48 @@ const QuestionManagePage: NextPage = () => {
   };
 
   const handleClearAll = async () => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete all questions from blob storage? This action cannot be undone."
-      )
-    ) {
-      try {
-        setIsSaving(true);
-        setSaveError(null);
+    showDialog(
+      "Clear All Questions",
+      "Are you sure you want to delete all questions from blob storage? This action cannot be undone.",
+      "confirm",
+      async () => {
+        try {
+          setIsSaving(true);
+          setSaveError(null);
 
-        // Delete all questions from blob storage
-        const response = await fetch('/api/blob-questions', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+          // Delete all questions from blob storage
+          const response = await fetch("/api/blob-questions", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
 
-        const result = await response.json();
+          const result = await response.json();
 
-        if (!response.ok) {
-          throw new Error(result.error || result.message || 'Failed to clear questions from blob storage');
+          if (!response.ok) {
+            throw new Error(
+              result.error ||
+                result.message ||
+                "Failed to clear questions from blob storage",
+            );
+          }
+
+          // Update state
+          setQuestions([]);
+
+          showDialog("Success", "All questions cleared successfully from blob storage!", "success");
+          console.log("✅ All questions deleted from blob storage");
+        } catch (error) {
+          console.error("Failed to clear questions from blob storage:", error);
+          setSaveError(
+            `Failed to clear questions: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+        } finally {
+          setIsSaving(false);
         }
-
-        // Update state
-        setQuestions([]);
-
-        alert("All questions cleared successfully from blob storage!");
-        console.log('✅ All questions deleted from blob storage');
-      } catch (error) {
-        console.error("Failed to clear questions from blob storage:", error);
-        setSaveError(`Failed to clear questions: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      } finally {
-        setIsSaving(false);
       }
-    }
+    );
   };
 
   return (
@@ -401,7 +470,9 @@ const QuestionManagePage: NextPage = () => {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">Error</h3>
+                      <h3 className="text-sm font-medium text-red-800">
+                        Error
+                      </h3>
                       <p className="mt-1 text-sm text-red-700">{saveError}</p>
                     </div>
                     <div className="ml-auto pl-3">
@@ -429,21 +500,21 @@ const QuestionManagePage: NextPage = () => {
               <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                 {/* Add New Question Form */}
                 <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                     Add New Question ({pendingQuestions.length} pending)
                   </h3>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                       <label
                         htmlFor="question"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Question *
                       </label>
                       <textarea
                         id="question"
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                         value={formData.question}
                         onChange={handleQuestionChange}
                         placeholder="Enter your question here..."
@@ -452,39 +523,47 @@ const QuestionManagePage: NextPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Answers *
                       </label>
                       <div className="space-y-3">
                         {formData.answers.map((answer, index) => (
                           <div
                             key={answer.id}
-                            className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
+                            className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 dark:border-gray-600"
                           >
-                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-8">
+                            <span className="w-8 text-sm font-medium text-gray-500 dark:text-gray-400">
                               {String.fromCharCode(65 + index)}.
                             </span>
 
                             <input
                               type="text"
-                              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                              className="flex-1 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                               value={answer.text}
                               onChange={(e) =>
-                                handleAnswerChange(answer.id, "text", e.target.value)
+                                handleAnswerChange(
+                                  answer.id,
+                                  "text",
+                                  e.target.value,
+                                )
                               }
                               placeholder={`Answer ${index + 1}`}
                               disabled={isSaving}
                             />
 
-                            <label className="flex items-center space-x-2 cursor-pointer">
+                            <label className="flex cursor-pointer items-center space-x-2">
                               <input
                                 type="radio"
                                 name="correctAnswer"
                                 checked={answer.isCorrect}
                                 onChange={() =>
-                                  handleAnswerChange(answer.id, "isCorrect", true)
+                                  handleAnswerChange(
+                                    answer.id,
+                                    "isCorrect",
+                                    true,
+                                  )
                                 }
-                                className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
                                 disabled={isSaving}
                               />
                               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -495,7 +574,8 @@ const QuestionManagePage: NextPage = () => {
                         ))}
                       </div>
                       <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        Mark at least one answer as correct. You can have multiple correct answers.
+                        Mark at least one answer as correct. You can have
+                        multiple correct answers.
                       </p>
                     </div>
 
@@ -503,7 +583,7 @@ const QuestionManagePage: NextPage = () => {
                       <button
                         type="submit"
                         disabled={isSaving}
-                        className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-400"
+                        className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
                         {isSaving ? "Adding..." : "Add to Batch"}
                       </button>
@@ -513,15 +593,17 @@ const QuestionManagePage: NextPage = () => {
                             type="button"
                             onClick={handleSaveAllQuestions}
                             disabled={isSaving}
-                            className="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-400"
+                            className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                           >
-                            {isSaving ? "Saving..." : `Save All (${pendingQuestions.length})`}
+                            {isSaving
+                              ? "Saving..."
+                              : `Save All (${pendingQuestions.length})`}
                           </button>
                           <button
                             type="button"
                             onClick={handleClearPending}
                             disabled={isSaving}
-                            className="px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-400"
+                            className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                           >
                             Clear Batch
                           </button>
@@ -532,19 +614,19 @@ const QuestionManagePage: NextPage = () => {
 
                   {/* Pending Questions Section */}
                   {pendingQuestions.length > 0 && (
-                    <div className="mt-6 border-t border-gray-200 dark:border-gray-600 pt-6">
-                      <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-3">
+                    <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-600">
+                      <h4 className="text-md mb-3 font-semibold text-gray-900 dark:text-white">
                         Pending Questions ({pendingQuestions.length})
                       </h4>
-                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                      <div className="max-h-64 space-y-3 overflow-y-auto">
                         {pendingQuestions.map((question, qIndex) => (
                           <div
                             key={question.id}
-                            className="border border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3"
+                            className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-700 dark:bg-yellow-900/20"
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <h5 className="font-medium text-gray-900 dark:text-white text-sm mb-1">
+                                <h5 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
                                   {qIndex + 1}. {question.question}
                                 </h5>
                                 <div className="space-y-1">
@@ -559,14 +641,14 @@ const QuestionManagePage: NextPage = () => {
                                       <span
                                         className={`flex-1 ${
                                           answer.isCorrect
-                                            ? "text-green-600 dark:text-green-400 font-medium"
+                                            ? "font-medium text-green-600 dark:text-green-400"
                                             : "text-gray-700 dark:text-gray-300"
                                         }`}
                                       >
                                         {answer.text}
                                       </span>
                                       {answer.isCorrect && (
-                                        <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-1 py-0.5 rounded">
+                                        <span className="rounded bg-green-100 px-1 py-0.5 text-xs text-green-800 dark:bg-green-900 dark:text-green-200">
                                           ✓
                                         </span>
                                       )}
@@ -575,12 +657,14 @@ const QuestionManagePage: NextPage = () => {
                                 </div>
                               </div>
                               <button
-                                onClick={() => handleRemoveFromPending(question.id)}
+                                onClick={() =>
+                                  handleRemoveFromPending(question.id)
+                                }
                                 disabled={isSaving}
-                                className="ml-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:cursor-not-allowed disabled:text-gray-400"
+                                className="ml-3 text-red-600 hover:text-red-800 disabled:cursor-not-allowed disabled:text-gray-400 dark:text-red-400 dark:hover:text-red-300"
                               >
                                 <svg
-                                  className="w-4 h-4"
+                                  className="h-4 w-4"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -603,45 +687,87 @@ const QuestionManagePage: NextPage = () => {
 
                 {/* Questions List */}
                 <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Current Questions ({questions.length})
-                  </h3>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Current Questions
+                    </h3>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      {questions.length} {questions.length === 1 ? 'question' : 'questions'}
+                    </span>
+                  </div>
+                  <div className="max-h-96 space-y-3 overflow-y-auto pr-2">
                     {questions.length === 0 ? (
-                      <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                        No questions yet. Add your first question using the form.
-                      </p>
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <svg
+                          className="mb-4 h-16 w-16 text-gray-300 dark:text-gray-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <p className="text-center text-sm font-medium text-gray-900 dark:text-white">
+                          No questions yet
+                        </p>
+                        <p className="mt-1 text-center text-xs text-gray-500 dark:text-gray-400">
+                          Add your first question using the form
+                        </p>
+                      </div>
                     ) : (
                       questions.map((question, qIndex) => (
                         <div
                           key={question.id}
-                          className="border border-gray-200 dark:border-gray-600 rounded-lg p-4"
+                          className="group relative rounded-lg border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-4 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md dark:border-gray-600 dark:from-gray-800 dark:to-gray-800/50 dark:hover:border-blue-600"
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                                {qIndex + 1}. {question.question}
-                              </h4>
-                              <div className="space-y-1">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-3">
+                              {/* Question Header */}
+                              <div className="flex items-start gap-3">
+                                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                  {qIndex + 1}
+                                </div>
+                                <h4 className="flex-1 pt-0.5 font-medium leading-snug text-gray-900 dark:text-white">
+                                  {question.question}
+                                </h4>
+                              </div>
+
+                              {/* Answers List */}
+                              <div className="space-y-2 pl-10">
                                 {question.answers.map((answer, aIndex) => (
                                   <div
                                     key={answer.id}
-                                    className="flex items-center space-x-2 text-sm"
+                                    className="flex items-center gap-2 text-sm"
                                   >
-                                    <span className="font-medium text-gray-600 dark:text-gray-400">
-                                      {String.fromCharCode(65 + aIndex)}.
+                                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                                      {String.fromCharCode(65 + aIndex)}
                                     </span>
                                     <span
                                       className={`flex-1 ${
                                         answer.isCorrect
-                                          ? "text-green-600 dark:text-green-400 font-medium"
+                                          ? "font-semibold text-green-600 dark:text-green-400"
                                           : "text-gray-700 dark:text-gray-300"
                                       }`}
                                     >
                                       {answer.text}
                                     </span>
                                     {answer.isCorrect && (
-                                      <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800 dark:bg-green-900/50 dark:text-green-300">
+                                        <svg
+                                          className="h-3 w-3"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
                                         Correct
                                       </span>
                                     )}
@@ -649,13 +775,16 @@ const QuestionManagePage: NextPage = () => {
                                 ))}
                               </div>
                             </div>
+
+                            {/* Delete Button */}
                             <button
                               onClick={() => handleDeleteQuestion(question.id)}
                               disabled={isSaving}
-                              className="ml-4 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 disabled:cursor-not-allowed disabled:text-gray-400"
+                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                              title="Delete question"
                             >
                               <svg
-                                className="w-5 h-5"
+                                className="h-5 w-5"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -678,6 +807,16 @@ const QuestionManagePage: NextPage = () => {
             </div>
           )}
         </div>
+
+        {/* Dialog Component */}
+        <Dialog
+          isOpen={dialogState.isOpen}
+          onClose={closeDialog}
+          title={dialogState.title}
+          message={dialogState.message}
+          type={dialogState.type}
+          onConfirm={dialogState.onConfirm}
+        />
       </Layout>
     </>
   );

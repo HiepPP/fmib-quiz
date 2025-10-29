@@ -6,6 +6,7 @@ import QuestionForm from "@/components/admin/QuestionForm";
 import QuestionList from "@/components/admin/QuestionList";
 import { Question } from "@/types/quiz";
 import { quizStorage } from "@/lib/quiz-storage";
+import Link from "next/link";
 
 type AdminView = "list" | "add" | "edit";
 
@@ -88,7 +89,6 @@ const AdminPage: NextPage = () => {
     setCurrentView("add");
   };
 
-  
   const handleEditQuestion = (question: Question) => {
     setEditingQuestion(question);
     setCurrentView("edit");
@@ -119,7 +119,6 @@ const AdminPage: NextPage = () => {
     setEditingQuestion(null);
   };
 
-  
   const handleExportQuestions = () => {
     const dataStr = JSON.stringify(questions, null, 2);
     const dataUri =
@@ -252,27 +251,12 @@ Automatic backups are handled by Vercel Postgres.
                   </button>
                 )}
 
-                <button
-                  onClick={handleClearAll}
-                  disabled={questions.length === 0 || isSaving}
-                  className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                >
-                  Clear All
-                </button>
-
-                <a
+                <Link
                   href="/admin/question-manage"
                   className="inline-flex rounded-md bg-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:bg-indigo-700"
                 >
                   Manage Questions
-                </a>
-
-                <button
-                  onClick={handleAddQuestion}
-                  className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-                >
-                  Quick Add
-                </button>
+                </Link>
               </div>
             )}
           </div>
