@@ -1,7 +1,8 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 import Layout from "@/components/layout/Layout";
 import { Question } from "@/types/quiz";
 import { blobStorage } from "../../lib/blob-storage";
@@ -12,11 +13,54 @@ import { getCurrentUser, clearAuth } from "@/lib/storage";
 import { apiClient } from "@/lib/api";
 
 const QuestionManagePage: NextPage = () => {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState(getCurrentUser());
+
+  // SWR fetcher function
+  const fetcher = async (url: string) => {
+    const response = await apiClient.get(url, true);
+    return response;
+  };
+
+  // Fetch questions with SWR
+  const { data: questions = [], error, isLoading, mutate } = useSWR<Question[]>(
+    "/blob-questions",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+
+  // Mutation for saving questions
+  const saveQuestionsMutation = useSWRMutation(
+    "/blob-questions",
+    async (url, { arg }: { arg: { questions: Question[] } }) => {
+      const response = await apiClient.post(url, { questions: arg.questions }, true);
+      return response;
+    },
+    {
+      onSuccess: () => {
+        mutate(); // Revalidate the data after successful mutation
+      },
+    }
+  );
+
+  // Mutation for deleting all questions
+  const clearAllQuestionsMutation = useSWRMutation(
+    "/blob-questions",
+    async (url) => {
+      const response = await apiClient.delete(url, true);
+      return response;
+    },
+    {
+      onSuccess: () => {
+        mutate(); // Revalidate the data after successful mutation
+      },
+    }
+  );
+
+  const isSaving = saveQuestionsMutation.isMutating || clearAllQuestionsMutation.isMutating;
+  const saveError = error?.message || saveQuestionsMutation.error?.message || clearAllQuestionsMutation.error?.message || null;
 
   // Logout function
   const handleLogout = () => {
@@ -47,39 +91,7 @@ const QuestionManagePage: NextPage = () => {
     setDialogState((prev) => ({ ...prev, isOpen: false }));
   };
 
-  // Load questions on mount
-  useEffect(() => {
-    const loadQuestions = async () => {
-      try {
-        console.log(
-          "🔄 Starting to load questions from blob storage for management...",
-        );
-        setIsLoading(true);
-
-        // Load questions from Vercel Blob storage
-        const loadedQuestions = await apiClient.get("/blob-questions", true);
-
-        console.log(
-          "✅ Questions loaded from blob storage for management:",
-          loadedQuestions,
-        );
-        console.log("📊 Questions count:", loadedQuestions.length);
-        setQuestions(loadedQuestions);
-        console.log("🎯 Questions state set");
-      } catch (error) {
-        console.error("❌ Failed to load questions from blob storage:", error);
-        setSaveError(
-          "Failed to load questions from blob storage. Please try refreshing the page.",
-        );
-      } finally {
-        console.log("🏁 Loading finished, setting isLoading to false");
-        setIsLoading(false);
-      }
-    };
-
-    loadQuestions();
-  }, []);
-
+  
   // Form state for adding questions
   // Form state for adding multiple questions
   const [formData, setFormData] = useState({
@@ -178,21 +190,10 @@ const QuestionManagePage: NextPage = () => {
       return;
     }
 
+    const updatedQuestions = [...questions, ...pendingQuestions];
+
     try {
-      setIsSaving(true);
-      setSaveError(null);
-
-      const updatedQuestions = [...questions, ...pendingQuestions];
-
-      // Save to Vercel Blob storage as JSON file
-      await apiClient.post(
-        "/blob-questions",
-        { questions: updatedQuestions },
-        true,
-      );
-
-      // Update state
-      setQuestions(updatedQuestions);
+      await saveQuestionsMutation.trigger({ questions: updatedQuestions });
 
       // Clear pending questions
       setPendingQuestions([]);
@@ -202,14 +203,8 @@ const QuestionManagePage: NextPage = () => {
         `${pendingQuestions.length} question(s) saved successfully to blob storage!`,
         "success",
       );
-      console.log("✅ Questions saved to blob storage:", result.data?.url);
     } catch (error) {
       console.error("Failed to save questions to blob storage:", error);
-      setSaveError(
-        `Failed to save to blob storage: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -239,38 +234,18 @@ const QuestionManagePage: NextPage = () => {
       "Are you sure you want to delete this question?",
       "confirm",
       async () => {
+        const updatedQuestions = questions.filter((q) => q.id !== questionId);
+
         try {
-          setIsSaving(true);
-          setSaveError(null);
-
-          const updatedQuestions = questions.filter((q) => q.id !== questionId);
-
-          // Save to Vercel Blob storage
-          await apiClient.post(
-            "/blob-questions",
-            { questions: updatedQuestions },
-            true,
-          );
-
-          // Update state
-          setQuestions(updatedQuestions);
+          await saveQuestionsMutation.trigger({ questions: updatedQuestions });
 
           showDialog(
             "Success",
             "Question deleted successfully from blob storage!",
             "success",
           );
-          console.log(
-            "✅ Questions updated in blob storage:",
-            result.data?.url,
-          );
         } catch (error) {
           console.error("Failed to delete question from blob storage:", error);
-          setSaveError(
-            `Failed to delete question: ${error instanceof Error ? error.message : "Unknown error"}`,
-          );
-        } finally {
-          setIsSaving(false);
         }
       },
     );
@@ -298,17 +273,12 @@ const QuestionManagePage: NextPage = () => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
-          const importedQuestions = JSON.parse(e.target?.result as string);
+          const importedQuestions: Question[] = JSON.parse(
+            e.target?.result as string,
+          );
           console.log("🚀 ~ importedQuestions:", importedQuestions);
           if (Array.isArray(importedQuestions)) {
-            setIsSaving(true);
-            setSaveError(null);
-
-            // Save to storage
-            await blobStorage.saveQuestions(importedQuestions);
-
-            // Update state
-            setQuestions(importedQuestions);
+            await saveQuestionsMutation.trigger({ questions: importedQuestions });
 
             showDialog(
               "Success",
@@ -329,11 +299,6 @@ const QuestionManagePage: NextPage = () => {
             "Error importing questions. Please check the file format.",
             "error",
           );
-          setSaveError(
-            `Error importing questions. Please check the file format. ${error}`,
-          );
-        } finally {
-          setIsSaving(false);
         }
       };
       reader.readAsText(file);
@@ -349,28 +314,15 @@ const QuestionManagePage: NextPage = () => {
       "confirm",
       async () => {
         try {
-          setIsSaving(true);
-          setSaveError(null);
-
-          // Delete all questions from blob storage
-          await apiClient.delete("/blob-questions", true);
-
-          // Update state
-          setQuestions([]);
+          await clearAllQuestionsMutation.trigger();
 
           showDialog(
             "Success",
             "All questions cleared successfully from blob storage!",
             "success",
           );
-          console.log("✅ All questions deleted from blob storage");
         } catch (error) {
           console.error("Failed to clear questions from blob storage:", error);
-          setSaveError(
-            `Failed to clear questions: ${error instanceof Error ? error.message : "Unknown error"}`,
-          );
-        } finally {
-          setIsSaving(false);
         }
       },
     );
@@ -485,12 +437,6 @@ const QuestionManagePage: NextPage = () => {
                   >
                     Clear All
                   </button>
-                  <Link
-                    href="/admin"
-                    className="rounded-md bg-gray-600 px-4 py-2 font-medium text-white transition-colors hover:bg-gray-700"
-                  >
-                    Back to Admin
-                  </Link>
                 </div>
               </div>
 
