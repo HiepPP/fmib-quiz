@@ -1,11 +1,10 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import Layout from "@/components/layout/Layout";
 import { Question } from "@/types/quiz";
-import { blobStorage } from "../../lib/blob-storage";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import withAuth from "@/components/auth/withAuth";
@@ -22,27 +21,32 @@ const QuestionManagePage: NextPage = () => {
   };
 
   // Fetch questions with SWR
-  const { data: questions = [], error, isLoading, mutate } = useSWR<Question[]>(
-    "/blob-questions",
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
+  const {
+    data: questions = [],
+    error,
+    isLoading,
+    mutate,
+  } = useSWR<Question[]>("/blob-questions", fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 
   // Mutation for saving questions
   const saveQuestionsMutation = useSWRMutation(
     "/blob-questions",
     async (url, { arg }: { arg: { questions: Question[] } }) => {
-      const response = await apiClient.post(url, { questions: arg.questions }, true);
+      const response = await apiClient.post(
+        url,
+        { questions: arg.questions },
+        true,
+      );
       return response;
     },
     {
       onSuccess: () => {
         mutate(); // Revalidate the data after successful mutation
       },
-    }
+    },
   );
 
   // Mutation for deleting all questions
@@ -56,11 +60,16 @@ const QuestionManagePage: NextPage = () => {
       onSuccess: () => {
         mutate(); // Revalidate the data after successful mutation
       },
-    }
+    },
   );
 
-  const isSaving = saveQuestionsMutation.isMutating || clearAllQuestionsMutation.isMutating;
-  const saveError = error?.message || saveQuestionsMutation.error?.message || clearAllQuestionsMutation.error?.message || null;
+  const isSaving =
+    saveQuestionsMutation.isMutating || clearAllQuestionsMutation.isMutating;
+  const saveError =
+    error?.message ||
+    saveQuestionsMutation.error?.message ||
+    clearAllQuestionsMutation.error?.message ||
+    null;
 
   // Logout function
   const handleLogout = () => {
@@ -91,7 +100,6 @@ const QuestionManagePage: NextPage = () => {
     setDialogState((prev) => ({ ...prev, isOpen: false }));
   };
 
-  
   // Form state for adding questions
   // Form state for adding multiple questions
   const [formData, setFormData] = useState({
@@ -278,7 +286,9 @@ const QuestionManagePage: NextPage = () => {
           );
           console.log("🚀 ~ importedQuestions:", importedQuestions);
           if (Array.isArray(importedQuestions)) {
-            await saveQuestionsMutation.trigger({ questions: importedQuestions });
+            await saveQuestionsMutation.trigger({
+              questions: importedQuestions,
+            });
 
             showDialog(
               "Success",

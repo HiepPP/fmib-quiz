@@ -67,7 +67,7 @@ export const useAuth = () => {
     isMutating: isLoggingIn,
     error,
     reset,
-  } = useSWRMutation<LoginResponse>("/api/auth", loginRequest);
+  } = useSWRMutation<LoginResponse>("/auth", loginRequest);
 
   // Login function
   const performLogin = async (
