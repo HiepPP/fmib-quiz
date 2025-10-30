@@ -1,0 +1,522 @@
+[
+  {
+    "id": "mk001",
+    "question": "Trong 4P của Marketing Mix, 'P' thứ tư đại diện cho yếu tố nào?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Product (Sản phẩm)",
+        "isCorrect": false
+      },
+      {
+        "id": "2",
+        "text": "Price (Giá cả)",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Place (Phân phối)",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Promotion (Xúc tiến)",
+        "isCorrect": true
+      }
+    ]
+  },
+  {
+    "id": "mk002",
+    "question": "Khái niệm 'Target Market' trong marketing có nghĩa là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Thị trường chứng khoán",
+        "isCorrect": false
+      },
+      {
+        "id": "2",
+        "text": "Thị trường mục tiêu mà doanh nghiệp muốn hướng đến",
+        "isCorrect": true
+      },
+      {
+        "id": "3",
+        "text": "Thị trường siêu thị",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Thị trường chợ đen",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk003",
+    "question": "SEO là viết tắt của gì trong Digital Marketing?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Search Engine Optimization",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Search Engine Organization",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Social Engine Optimization",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Sales Enhancement Operation",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk004",
+    "question": "Kênh marketing nào được xem là hiệu quả nhất cho B2B (Business-to-Business)?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "TikTok Ads",
+        "isCorrect": false
+      },
+      {
+        "id": "2",
+        "text": "LinkedIn Marketing",
+        "isCorrect": true
+      },
+      {
+        "id": "3",
+        "text": "Instagram Reels",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Facebook Gaming",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk005",
+    "question": "'Call to Action' (CTA) trong marketing có vai trò gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Kêu gọi khách hàng hành động cụ thể",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Gọi điện cho khách hàng",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Thông báo về chương trình khuyến mãi",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Thu thập thông tin khách hàng",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk006",
+    "question": "Brand Awareness có nghĩa là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Nhận thức về thương hiệu",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Chất lượng thương hiệu",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Giá trị thương hiệu",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Lịch sử thương hiệu",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk007",
+    "question": "Công thức tính ROI trong marketing là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "(Lợi nhuận - Chi phí) / Chi phí × 100%",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Chi phí / Lợi nhuận × 100%",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Lợi nhuận / Doanh thu × 100%",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Doanh thu / Chi phí × 100%",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk008",
+    "question": "Content Marketing tập trung vào yếu tố cốt lõi nào?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Bán sản phẩm trực tiếp",
+        "isCorrect": false
+      },
+      {
+        "id": "2",
+        "text": "Tạo ra nội dung giá trị và hữu ích cho khách hàng",
+        "isCorrect": true
+      },
+      {
+        "id": "3",
+        "text": "Quảng cáo rầm rộ",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Giảm giá sản phẩm",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk009",
+    "question": "Khái niệm 'Lead Generation' trong digital marketing là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Tạo ra khách hàng tiềm năng",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Quản lý đội ngũ bán hàng",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Nghiên cứu thị trường",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Phát triển sản phẩm mới",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk010",
+    "question": "Email Marketing có tỷ lệ ROI cao nhất trong các kênh digital marketing vì sao?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Vì miễn phí",
+        "isCorrect": false
+      },
+      {
+        "id": "2",
+        "text": "Vì dễ thực hiện",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Vì có thể cá nhân hóa và tiếp cận trực tiếp khách hàng",
+        "isCorrect": true
+      },
+      {
+        "id": "4",
+        "text": "Vì không cần kỹ năng chuyên môn",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk011",
+    "question": "A/B Testing trong marketing dùng để làm gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Kiểm tra hai phiên bản khác nhau để xem phiên bản nào hiệu quả hơn",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Kiểm tra chất lượng sản phẩm",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Kiểm tra giá cả",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Kiểm tra dịch vụ khách hàng",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk012",
+    "question": "Khái niệm 'Customer Journey' mô tả điều gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Hành trình của khách hàng từ khi biết đến sản phẩm đến khi mua hàng",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Chuyến đi của khách hàng",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Lịch sử mua hàng của khách hàng",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Đánh giá của khách hàng",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk013",
+    "question": "Influencer Marketing là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Marketing qua người có ảnh hưởng trên mạng xã hội",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Marketing cho người nổi tiếng",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Marketing truyền hình",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Marketing báo chí",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk014",
+    "question": "Conversion Rate trong digital marketing có nghĩa là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Tỷ lệ chuyển đổi từ người xem thành khách hàng",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Tỷ lệ đổi trả sản phẩm",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Tỷ lệ tăng trưởng doanh thu",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Tỷ lệ khách hàng quay lại",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk015",
+    "question": "CRM là viết tắt của gì trong marketing?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Customer Relationship Management",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Customer Retention Marketing",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Client Relationship Management",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Customer Revenue Management",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk016",
+    "question": "Google Analytics chủ yếu dùng để làm gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Phân tích lưu lượng truy cập website và hành vi người dùng",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Từ khóa SEO",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Quản lý email marketing",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Thiết kế website",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk017",
+    "question": "KPI trong marketing có nghĩa là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Key Performance Indicator - Chỉ số hiệu suất chính",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Key Performance Index - Chỉ mục hiệu suất chính",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Key Product Indicator - Chỉ số sản phẩm chính",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Key Promotion Indicator - Chỉ số xúc tiến chính",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk018",
+    "question": "Social Media Marketing bao gồm những nền tảng chính nào?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Facebook, Instagram, Twitter, LinkedIn, TikTok",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Website, Email, SMS",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "TV, Radio, Newspaper",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Google, Bing, Yahoo",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk019",
+    "question": "Copywriting trong marketing là gì?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Nghệ thuật viết nội dung quảng cáo persuasive",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Sao chép nội dung từ đối thủ",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Viết nội dung báo chí",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Viết nội dung học thuật",
+        "isCorrect": false
+      }
+    ]
+  },
+  {
+    "id": "mk020",
+    "question": "Market Segmentation là quá trình gì trong marketing?",
+    "answers": [
+      {
+        "id": "1",
+        "text": "Phân khúc thị trường - chia thị trường thành các nhóm nhỏ",
+        "isCorrect": true
+      },
+      {
+        "id": "2",
+        "text": "Nghiên cứu thị trường",
+        "isCorrect": false
+      },
+      {
+        "id": "3",
+        "text": "Phát triển thị trường mới",
+        "isCorrect": false
+      },
+      {
+        "id": "4",
+        "text": "Quảng cáo trên thị trường",
+        "isCorrect": false
+      }
+    ]
+  }
+]

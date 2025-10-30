@@ -695,7 +695,7 @@ const QuestionManagePage: NextPage = () => {
                       {questions.length} {questions.length === 1 ? 'question' : 'questions'}
                     </span>
                   </div>
-                  <div className="max-h-96 space-y-3 overflow-y-auto pr-2">
+                  <div className="space-y-3">
                     {questions.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12">
                         <svg
