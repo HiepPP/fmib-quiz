@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Question } from "@/types/quiz";
-import { quizStorage } from "../../lib/quiz-storage";
+import { blobStorage } from "../../lib/blob-storage";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import withAuth from "@/components/auth/withAuth";
@@ -277,7 +277,7 @@ const QuestionManagePage: NextPage = () => {
             setSaveError(null);
 
             // Save to storage
-            await quizStorage.saveQuestions(importedQuestions);
+            await blobStorage.saveQuestions(importedQuestions);
 
             // Update state
             setQuestions(importedQuestions);

@@ -55,7 +55,7 @@ const LoginPage: NextPage = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="error">
                   {error.data?.error || error.message || 'An error occurred. Please try again.'}
                 </Alert>
               )}

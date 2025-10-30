@@ -30,9 +30,9 @@ interface AuthState {
 const loginRequest = async (
   url: string,
   { arg }: { arg: LoginCredentials },
-) => {
+): Promise<LoginResponse> => {
   const response = await apiClient.postRaw(url, arg);
-  return response;
+  return response as LoginResponse;
 };
 
 // Auth hook that combines SWR mutation with localStorage
@@ -66,9 +66,8 @@ export const useAuth = () => {
     trigger: login,
     isMutating: isLoggingIn,
     error,
-    data,
     reset,
-  } = useSWRMutation("/auth", loginRequest);
+  } = useSWRMutation<LoginResponse>("/api/auth", loginRequest);
 
   // Login function
   const performLogin = async (
@@ -92,7 +91,7 @@ export const useAuth = () => {
         console.log("Login failed - invalid response format");
         return false;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("SWR login error:", err);
       throw err;
     }
