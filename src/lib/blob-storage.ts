@@ -202,7 +202,10 @@ export const blobStorage = {
 
     // Handle debug response (when API returns env variable for debugging)
     if (result.debug === "BLOB_READ_WRITE_TOKEN") {
-      console.log("🔍 Debug mode - API returned BLOB_READ_WRITE_TOKEN:", result.value);
+      console.log(
+        "🔍 Debug mode - API returned BLOB_READ_WRITE_TOKEN:",
+        result.value,
+      );
       return []; // Return empty array for now since we're in debug mode
     }
 

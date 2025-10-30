@@ -21,7 +21,7 @@ const QuestionManagePage: NextPage = () => {
   // Logout function
   const handleLogout = () => {
     clearAuth();
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
 
   // Dialog state management
@@ -129,13 +129,21 @@ const QuestionManagePage: NextPage = () => {
       answer.text.trim(),
     );
     if (validAnswers.length < 2) {
-      showDialog("Insufficient Answers", "Please provide at least 2 answers", "warning");
+      showDialog(
+        "Insufficient Answers",
+        "Please provide at least 2 answers",
+        "warning",
+      );
       return;
     }
 
     const hasCorrectAnswer = validAnswers.some((answer) => answer.isCorrect);
     if (!hasCorrectAnswer) {
-      showDialog("No Correct Answer", "Please mark at least one answer as correct", "warning");
+      showDialog(
+        "No Correct Answer",
+        "Please mark at least one answer as correct",
+        "warning",
+      );
       return;
     }
 
@@ -162,7 +170,11 @@ const QuestionManagePage: NextPage = () => {
 
   const handleSaveAllQuestions = async () => {
     if (pendingQuestions.length === 0) {
-      showDialog("No Pending Questions", "No questions to save. Please add questions first.", "info");
+      showDialog(
+        "No Pending Questions",
+        "No questions to save. Please add questions first.",
+        "info",
+      );
       return;
     }
 
@@ -173,7 +185,11 @@ const QuestionManagePage: NextPage = () => {
       const updatedQuestions = [...questions, ...pendingQuestions];
 
       // Save to Vercel Blob storage as JSON file
-      await apiClient.post("/blob-questions", { questions: updatedQuestions }, true);
+      await apiClient.post(
+        "/blob-questions",
+        { questions: updatedQuestions },
+        true,
+      );
 
       // Update state
       setQuestions(updatedQuestions);
@@ -184,7 +200,7 @@ const QuestionManagePage: NextPage = () => {
       showDialog(
         "Success",
         `${pendingQuestions.length} question(s) saved successfully to blob storage!`,
-        "success"
+        "success",
       );
       console.log("✅ Questions saved to blob storage:", result.data?.url);
     } catch (error) {
@@ -213,7 +229,7 @@ const QuestionManagePage: NextPage = () => {
       "confirm",
       () => {
         setPendingQuestions([]);
-      }
+      },
     );
   };
 
@@ -230,13 +246,24 @@ const QuestionManagePage: NextPage = () => {
           const updatedQuestions = questions.filter((q) => q.id !== questionId);
 
           // Save to Vercel Blob storage
-          await apiClient.post("/blob-questions", { questions: updatedQuestions }, true);
+          await apiClient.post(
+            "/blob-questions",
+            { questions: updatedQuestions },
+            true,
+          );
 
           // Update state
           setQuestions(updatedQuestions);
 
-          showDialog("Success", "Question deleted successfully from blob storage!", "success");
-          console.log("✅ Questions updated in blob storage:", result.data?.url);
+          showDialog(
+            "Success",
+            "Question deleted successfully from blob storage!",
+            "success",
+          );
+          console.log(
+            "✅ Questions updated in blob storage:",
+            result.data?.url,
+          );
         } catch (error) {
           console.error("Failed to delete question from blob storage:", error);
           setSaveError(
@@ -245,7 +272,7 @@ const QuestionManagePage: NextPage = () => {
         } finally {
           setIsSaving(false);
         }
-      }
+      },
     );
   };
 
@@ -272,6 +299,7 @@ const QuestionManagePage: NextPage = () => {
       reader.onload = async (e) => {
         try {
           const importedQuestions = JSON.parse(e.target?.result as string);
+          console.log("🚀 ~ importedQuestions:", importedQuestions);
           if (Array.isArray(importedQuestions)) {
             setIsSaving(true);
             setSaveError(null);
@@ -282,15 +310,27 @@ const QuestionManagePage: NextPage = () => {
             // Update state
             setQuestions(importedQuestions);
 
-            showDialog("Success", "Questions imported successfully!", "success");
+            showDialog(
+              "Success",
+              "Questions imported successfully!",
+              "success",
+            );
           } else {
-            showDialog("Invalid File", "Invalid file format. Please upload a valid questions file.", "error");
+            showDialog(
+              "Invalid File",
+              "Invalid file format. Please upload a valid questions file.",
+              "error",
+            );
           }
         } catch (error) {
           console.error("Import error:", error);
-          showDialog("Import Error", "Error importing questions. Please check the file format.", "error");
-          setSaveError(
+          showDialog(
+            "Import Error",
             "Error importing questions. Please check the file format.",
+            "error",
+          );
+          setSaveError(
+            `Error importing questions. Please check the file format. ${error}`,
           );
         } finally {
           setIsSaving(false);
@@ -318,7 +358,11 @@ const QuestionManagePage: NextPage = () => {
           // Update state
           setQuestions([]);
 
-          showDialog("Success", "All questions cleared successfully from blob storage!", "success");
+          showDialog(
+            "Success",
+            "All questions cleared successfully from blob storage!",
+            "success",
+          );
           console.log("✅ All questions deleted from blob storage");
         } catch (error) {
           console.error("Failed to clear questions from blob storage:", error);
@@ -328,7 +372,7 @@ const QuestionManagePage: NextPage = () => {
         } finally {
           setIsSaving(false);
         }
-      }
+      },
     );
   };
 
@@ -345,12 +389,12 @@ const QuestionManagePage: NextPage = () => {
       <Layout title="Question Management">
         <div className="container mx-auto px-4 py-8">
           {/* Admin Header with User Info and Logout */}
-          <div className="mb-6 flex justify-between items-center">
+          <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Question Management
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <p className="mt-1 text-gray-600 dark:text-gray-400">
                 Manage quiz questions for the FMIB Quiz application
               </p>
             </div>
@@ -365,8 +409,8 @@ const QuestionManagePage: NextPage = () => {
                       {currentUser.role}
                     </p>
                   </div>
-                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600">
+                    <span className="text-sm font-medium text-white">
                       {currentUser.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
@@ -378,8 +422,18 @@ const QuestionManagePage: NextPage = () => {
                 onClick={handleLogout}
                 className="flex items-center space-x-2"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
                 </svg>
                 <span>Logout</span>
               </Button>
@@ -680,7 +734,8 @@ const QuestionManagePage: NextPage = () => {
                       Current Questions
                     </h3>
                     <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      {questions.length} {questions.length === 1 ? 'question' : 'questions'}
+                      {questions.length}{" "}
+                      {questions.length === 1 ? "question" : "questions"}
                     </span>
                   </div>
                   <div className="space-y-3">
@@ -719,7 +774,7 @@ const QuestionManagePage: NextPage = () => {
                                 <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
                                   {qIndex + 1}
                                 </div>
-                                <h4 className="flex-1 pt-0.5 font-medium leading-snug text-gray-900 dark:text-white">
+                                <h4 className="flex-1 pt-0.5 leading-snug font-medium text-gray-900 dark:text-white">
                                   {question.question}
                                 </h4>
                               </div>
