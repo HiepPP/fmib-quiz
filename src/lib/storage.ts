@@ -29,11 +29,26 @@ export interface Question {
   }>
 }
 
+// Authentication types
+export interface AuthUser {
+  id: number
+  username: string
+  name: string
+  role: string
+}
+
+export interface AuthData {
+  user: AuthUser
+  token: string
+  expiresAt: number
+}
+
 // Local storage keys
 export const STORAGE_KEYS = {
   QUIZ_SESSION: 'fmib_quiz_session',
   QUIZ_QUESTIONS: 'fmib_quiz_questions',
-  USER_ANSWERS: 'fmib_user_answers'
+  USER_ANSWERS: 'fmib_user_answers',
+  AUTH_DATA: 'fmib_auth_data'
 } as const
 
 // In-memory cache for user answers
@@ -183,6 +198,65 @@ export const storage = {
     }
 
     return cleaned
+  },
+
+  // Authentication management
+  setAuthUser: (token: string, user: AuthUser): void => {
+    if (typeof window !== 'undefined') {
+      // Set expiration to 24 hours from now
+      const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
+      const authData: AuthData = {
+        user,
+        token,
+        expiresAt
+      };
+      localStorage.setItem(STORAGE_KEYS.AUTH_DATA, JSON.stringify(authData));
+    }
+  },
+
+  getAuthUser: (): AuthData | null => {
+    if (typeof window !== 'undefined') {
+      try {
+        const authDataStr = localStorage.getItem(STORAGE_KEYS.AUTH_DATA);
+        if (!authDataStr) return null;
+
+        const authData: AuthData = JSON.parse(authDataStr);
+
+        // Check if token is expired
+        if (Date.now() > authData.expiresAt) {
+          storage.clearAuth();
+          return null;
+        }
+
+        return authData;
+      } catch (error) {
+        console.error('Error parsing auth data:', error);
+        storage.clearAuth();
+        return null;
+      }
+    }
+    return null;
+  },
+
+  isAuthenticated: (): boolean => {
+    const authData = storage.getAuthUser();
+    return authData !== null && authData.token.length > 0;
+  },
+
+  getAuthToken: (): string | null => {
+    const authData = storage.getAuthUser();
+    return authData?.token || null;
+  },
+
+  getCurrentUser: (): AuthUser | null => {
+    const authData = storage.getAuthUser();
+    return authData?.user || null;
+  },
+
+  clearAuth: (): void => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_DATA);
+    }
   }
 }
 
@@ -199,3 +273,11 @@ export const getRemainingTime = (startTime: number): number => {
   const remainingMs = Math.max(0, SESSION_DURATION - elapsed)
   return Math.ceil(remainingMs / 1000) // Convert to seconds and round up
 }
+
+// Authentication convenience exports
+export const setAuthUser = storage.setAuthUser;
+export const getAuthUser = storage.getAuthUser;
+export const isAuthenticated = storage.isAuthenticated;
+export const getAuthToken = storage.getAuthToken;
+export const getCurrentUser = storage.getCurrentUser;
+export const clearAuth = storage.clearAuth;

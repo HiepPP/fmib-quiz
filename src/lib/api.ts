@@ -1,4 +1,5 @@
 import { Question, QuizAnswer, QuizResult, UserInfo } from "@/types/quiz";
+import { getAuthToken, clearAuth } from "@/lib/storage";
 
 // API base configuration
 const API_BASE = "/api";
@@ -63,20 +64,42 @@ export class ApiError extends Error {
 async function apiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {},
+  requireAuth: boolean = false,
 ): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  // Add authentication header if required
+  if (requireAuth) {
+    const token = getAuthToken();
+    if (!token) {
+      throw new ApiError("Authentication required", 401);
+    }
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   const config: RequestInit = {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
     ...options,
   };
 
   try {
     const response = await fetch(url, config);
     const data: ApiResponse<T> = await response.json();
+
+    // Handle authentication errors
+    if (response.status === 401) {
+      clearAuth(); // Clear invalid authentication
+      throw new ApiError(
+        "Authentication expired or invalid. Please log in again.",
+        401,
+        data,
+      );
+    }
 
     if (!response.ok) {
       throw new ApiError(
@@ -180,4 +203,67 @@ export const isSubmitResponse = (data: unknown): data is SubmitResponse => {
     typeof data.result === "object" &&
     typeof data.summary === "object"
   );
+};
+
+// Generic API client for components
+export const apiClient = {
+  /**
+   * Make a GET request
+   */
+  async get<T = unknown>(endpoint: string, requireAuth: boolean = false): Promise<T> {
+    return apiRequest<T>(endpoint, { method: "GET" }, requireAuth);
+  },
+
+  /**
+   * Make a POST request
+   */
+  async post<T = unknown>(endpoint: string, data?: unknown, requireAuth: boolean = false): Promise<T> {
+    return apiRequest<T>(endpoint, {
+      method: "POST",
+      body: data ? JSON.stringify(data) : undefined,
+    }, requireAuth);
+  },
+
+  /**
+   * Make a PUT request
+   */
+  async put<T = unknown>(endpoint: string, data?: unknown, requireAuth: boolean = false): Promise<T> {
+    return apiRequest<T>(endpoint, {
+      method: "PUT",
+      body: data ? JSON.stringify(data) : undefined,
+    }, requireAuth);
+  },
+
+  /**
+   * Make a DELETE request
+   */
+  async delete<T = unknown>(endpoint: string, requireAuth: boolean = false): Promise<T> {
+    return apiRequest<T>(endpoint, { method: "DELETE" }, requireAuth);
+  },
+
+  /**
+   * Make a raw POST request for auth endpoints that don't follow standard API response format
+   */
+  async postRaw<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    const url = `${API_BASE}${endpoint}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new ApiError(
+        errorData.error || errorData.message || `HTTP error! status: ${response.status}`,
+        response.status,
+        errorData,
+      );
+    }
+
+    return response.json() as Promise<T>;
+  },
 };

@@ -6,12 +6,23 @@ import Layout from "@/components/layout/Layout";
 import { Question } from "@/types/quiz";
 import { quizStorage } from "../../lib/quiz-storage";
 import { Dialog } from "@/components/ui/Dialog";
+import { Button } from "@/components/ui/Button";
+import withAuth from "@/components/auth/withAuth";
+import { getCurrentUser, clearAuth } from "@/lib/storage";
+import { apiClient } from "@/lib/api";
 
 const QuestionManagePage: NextPage = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+
+  // Logout function
+  const handleLogout = () => {
+    clearAuth();
+    window.location.href = '/login';
+  };
 
   // Dialog state management
   const [dialogState, setDialogState] = useState({
@@ -46,30 +57,13 @@ const QuestionManagePage: NextPage = () => {
         setIsLoading(true);
 
         // Load questions from Vercel Blob storage
-        const response = await fetch("/api/blob-questions", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const loadedQuestions = await apiClient.get("/blob-questions", true);
 
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            result.error ||
-              result.message ||
-              "Failed to load questions from blob storage",
-          );
-        }
-
-        const loadedQuestions = result.data;
         console.log(
           "✅ Questions loaded from blob storage for management:",
           loadedQuestions,
         );
         console.log("📊 Questions count:", loadedQuestions.length);
-        console.log("📁 Source:", result.source);
         setQuestions(loadedQuestions);
         console.log("🎯 Questions state set");
       } catch (error) {
@@ -179,23 +173,7 @@ const QuestionManagePage: NextPage = () => {
       const updatedQuestions = [...questions, ...pendingQuestions];
 
       // Save to Vercel Blob storage as JSON file
-      const response = await fetch("/api/blob-questions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ questions: updatedQuestions }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result.error ||
-            result.message ||
-            "Failed to save questions to blob storage",
-        );
-      }
+      await apiClient.post("/blob-questions", { questions: updatedQuestions }, true);
 
       // Update state
       setQuestions(updatedQuestions);
@@ -252,23 +230,7 @@ const QuestionManagePage: NextPage = () => {
           const updatedQuestions = questions.filter((q) => q.id !== questionId);
 
           // Save to Vercel Blob storage
-          const response = await fetch("/api/blob-questions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ questions: updatedQuestions }),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(
-              result.error ||
-                result.message ||
-                "Failed to update questions in blob storage",
-            );
-          }
+          await apiClient.post("/blob-questions", { questions: updatedQuestions }, true);
 
           // Update state
           setQuestions(updatedQuestions);
@@ -351,22 +313,7 @@ const QuestionManagePage: NextPage = () => {
           setSaveError(null);
 
           // Delete all questions from blob storage
-          const response = await fetch("/api/blob-questions", {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(
-              result.error ||
-                result.message ||
-                "Failed to clear questions from blob storage",
-            );
-          }
+          await apiClient.delete("/blob-questions", true);
 
           // Update state
           setQuestions([]);
@@ -397,6 +344,47 @@ const QuestionManagePage: NextPage = () => {
 
       <Layout title="Question Management">
         <div className="container mx-auto px-4 py-8">
+          {/* Admin Header with User Info and Logout */}
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Question Management
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Manage quiz questions for the FMIB Quiz application
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              {currentUser && (
+                <div className="flex items-center space-x-3">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {currentUser.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {currentUser.role}
+                    </p>
+                  </div>
+                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {currentUser.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center space-x-2"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+              </Button>
+            </div>
+          </div>
           {isLoading ? (
             <div className="py-12 text-center">
               <div className="inline-flex items-center space-x-2">
@@ -822,4 +810,4 @@ const QuestionManagePage: NextPage = () => {
   );
 };
 
-export default QuestionManagePage;
+export default withAuth(QuestionManagePage);
