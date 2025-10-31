@@ -15,8 +15,8 @@ const QuestionManagePage: NextPage = () => {
   const [currentUser, setCurrentUser] = useState(getCurrentUser());
 
   // SWR fetcher function
-  const fetcher = async (url: string) => {
-    const response = await apiClient.get(url, true);
+  const fetcher = async (url: string): Promise<Question[]> => {
+    const response = await apiClient.get<Question[]>(url, true);
     return response;
   };
 
