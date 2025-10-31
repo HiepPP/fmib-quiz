@@ -255,6 +255,32 @@ const QuizPage: NextPage = () => {
     [questions, currentQuestionIndex],
   );
 
+  // Auto-select answer D in development mode for faster testing
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV === 'development' &&
+      questions.length > 0 &&
+      currentQuestionIndex < questions.length
+    ) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const alreadySelected = getCurrentSelectedAnswer();
+
+      // Only auto-select if no answer is already selected
+      if (!alreadySelected && currentQuestion.answers && currentQuestion.answers.length > 0) {
+        // Find answer D (typically the 4th option, index 3)
+        const answerD = currentQuestion.answers.find((answer) =>
+          answer.id.toLowerCase().includes('d') ||
+          currentQuestion.answers.indexOf(answer) === 3
+        );
+
+        if (answerD) {
+          console.log(`🧪 Development mode: Auto-selecting answer D for question ${currentQuestionIndex + 1}`);
+          handleAnswerSelect(answerD.id);
+        }
+      }
+    }
+  }, [currentQuestionIndex, questions, getCurrentSelectedAnswer, handleAnswerSelect]);
+
   // Handle next question
   const handleNext = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
@@ -944,7 +970,7 @@ const QuizPage: NextPage = () => {
                                       <div className="absolute -inset-0.5 rounded-lg bg-yellow-400 opacity-75 blur transition duration-300 group-hover:opacity-100 group-hover:blur-sm"></div>
                                       <button
                                         onClick={handleViewCertificate}
-                                        className="relative w-full transform rounded-lg bg-yellow-500 px-3 py-2.5 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-yellow-400 hover:shadow-xl focus:ring-4 focus:ring-yellow-300/50 focus:outline-none active:scale-100 sm:px-4 sm:py-3 lg:px-8 lg:py-4"
+                                        className="relative w-full transform rounded-lg bg-yellow-500 px-3 py-2.5 font-bold text-white shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 hover:bg-yellow-400 hover:shadow-xl focus:ring-4 focus:ring-yellow-300/50 focus:outline-none active:scale-100 sm:px-4 sm:py-3 lg:px-8 lg:py-4"
                                       >
                                         <span className="flex items-center justify-center space-x-1.5 sm:space-x-2 lg:space-x-3">
                                           <svg
@@ -990,7 +1016,7 @@ const QuizPage: NextPage = () => {
                             <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
                               <button
                                 onClick={handleRestartQuiz}
-                                className="group relative w-full transform rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
+                                className="group relative w-full transform rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 cursor-pointer hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
                               >
                                 <span className="flex items-center justify-center space-x-2">
                                   <svg
@@ -1011,7 +1037,7 @@ const QuizPage: NextPage = () => {
                               </button>
                               <button
                                 onClick={handleGoHome}
-                                className="group relative w-full transform rounded-lg bg-gray-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-gray-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
+                                className="group relative w-full transform rounded-lg bg-gray-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 cursor-pointer hover:scale-105 hover:bg-gray-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
                               >
                                 <span className="flex items-center justify-center space-x-2">
                                   <svg

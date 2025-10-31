@@ -39,16 +39,14 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
     if (!formData.studentNumber.trim()) {
       newErrors.studentNumber = "Mã số sinh viên là bắt buộc";
     } else if (!/^[a-zA-Z0-9]{4,20}$/.test(formData.studentNumber.trim())) {
-      newErrors.studentNumber =
-        "Mã số sinh viên phải có 4-20 ký tự chữ và số";
+      newErrors.studentNumber = "Mã số sinh viên phải có 4-20 ký tự chữ và số";
     }
 
     // Class number validation
     if (!formData.classNumber.trim()) {
       newErrors.classNumber = "Lớp là bắt buộc";
     } else if (!/^[a-zA-Z0-9]{1,10}$/.test(formData.classNumber.trim())) {
-      newErrors.classNumber =
-        "Lớp phải có 1-10 ký tự chữ và số";
+      newErrors.classNumber = "Lớp phải có 1-10 ký tự chữ và số";
     }
 
     // Major validation
@@ -398,7 +396,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group relative w-full transform overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:rounded-2xl sm:px-6 sm:py-4 sm:text-base"
+                className="group relative w-full cursor-pointer transform overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:rounded-2xl sm:px-6 sm:py-4 sm:text-base"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                 <div className="relative flex items-center justify-center space-x-2">

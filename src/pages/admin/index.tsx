@@ -375,7 +375,7 @@ const QuestionManagePage: NextPage = () => {
                   <button
                     onClick={handleExportQuestions}
                     disabled={questions.length === 0 || isSaving}
-                    className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                    className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                   >
                     Export
                   </button>
@@ -523,7 +523,7 @@ const QuestionManagePage: NextPage = () => {
                       <button
                         type="submit"
                         disabled={isSaving}
-                        className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        className="rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
                         {isSaving ? "Adding..." : "Add to Batch"}
                       </button>
@@ -533,7 +533,7 @@ const QuestionManagePage: NextPage = () => {
                             type="button"
                             onClick={handleSaveAllQuestions}
                             disabled={isSaving}
-                            className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                            className="rounded-md bg-green-600 px-4 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                           >
                             {isSaving
                               ? "Saving..."
@@ -543,7 +543,7 @@ const QuestionManagePage: NextPage = () => {
                             type="button"
                             onClick={handleClearPending}
                             disabled={isSaving}
-                            className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                            className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                           >
                             Clear Batch
                           </button>
@@ -644,7 +644,7 @@ const QuestionManagePage: NextPage = () => {
                           setSelectedQuestions(new Set());
                         }}
                         disabled={questions.length === 0 || isSaving || isDeleting}
-                        className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
                         Delete questions
                       </button>
@@ -659,7 +659,7 @@ const QuestionManagePage: NextPage = () => {
                             setSelectedQuestions(new Set());
                           }}
                           disabled={isSaving || isDeleting}
-                          className="rounded-md bg-gray-600 px-4 py-2 font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                          className="rounded-md bg-gray-600 px-4 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                         >
                           Cancel
                         </button>
@@ -694,7 +694,7 @@ const QuestionManagePage: NextPage = () => {
                             );
                           }}
                           disabled={isSaving || isDeleting || selectedQuestions.size === 0}
-                          className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                          className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                         >
                           {isDeleting ? 'Deleting...' : 'Confirm'}
                         </button>

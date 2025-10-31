@@ -294,10 +294,10 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-1 sm:py-0 lg:py-4">
+      <div className="container mx-auto max-w-4xl px-2 sm:px-3 lg:px-6">
         {/* Action Buttons */}
-        <div className="flex flex-row justify-end gap-2 mb-6 print:hidden">
+        <div className="flex flex-row justify-end gap-2 mb-2 sm:mb-3 lg:mb-6 print:hidden">
           <Button
             onClick={handleDownload}
             variant="outline"
@@ -338,25 +338,26 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
         </div>
 
         {/* Certificate Wrapper */}
-        <div
-          className="mx-auto mb-6"
-          style={{
-            width: `${800 * scale}px`,
-            minHeight: `${600 * scale}px`,
-          }}
-        >
-          {/* Certificate Container */}
+        <div className="flex-1">
           <div
-            className="certificate-container bg-white border-[12px] border-[#002b5c] overflow-hidden transition-transform duration-300 ease-out"
-            id="certificateContainer"
+            className="mx-auto mb-2 sm:mb-3 lg:mb-6"
             style={{
-              display: "block",
-              width: "800px",
-              fontFamily: "'Times New Roman', Times, serif",
-              transform: `scale(${scale})`,
-              transformOrigin: "top center",
+              width: `${800 * scale}px`,
+              minHeight: `${600 * scale}px`,
             }}
           >
+            {/* Certificate Container */}
+            <div
+              className="certificate-container bg-white border-[12px] border-[#002b5c] overflow-hidden transition-transform duration-300 ease-out shadow-lg"
+              id="certificateContainer"
+              style={{
+                display: "block",
+                width: "800px",
+                fontFamily: "'Times New Roman', Times, serif",
+                transform: `scale(${scale})`,
+                transformOrigin: "top center",
+              }}
+            >
           {/* Certificate Header with Logos */}
           <div className="bg-white p-6 text-center">
             <div className="flex justify-center items-center gap-6 mb-4">
@@ -500,11 +501,10 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
               </div>
             </div>
           </div>
-          </div>
         </div>
 
         {/* Download Button */}
-        <div className="text-center py-6 print:hidden">
+        <div className="text-center py-3 sm:py-4 lg:py-6 print:hidden">
           <button
             className="bg-[#ffc107] hover:bg-[#e0a800] disabled:bg-gray-400 text-black font-bold py-3 px-8 rounded-full transition-colors text-base disabled:cursor-not-allowed"
             onClick={handleDownload}
@@ -528,6 +528,8 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             </p>
           </div>
         )}
+        </div>
+      </div>
 
         {/* Export and Print Styles */}
         <style jsx global>{`
@@ -568,6 +570,10 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
             .min-h-screen {
               min-height: auto !important;
               padding: 0 !important;
+              background: white !important;
+            }
+
+            .dark .min-h-screen {
               background: white !important;
             }
 

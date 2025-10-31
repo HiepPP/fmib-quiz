@@ -164,7 +164,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
               disabled={!canGoPrevious}
               className={`group flex items-center space-x-3 rounded-xl px-6 py-3 font-semibold transition-all duration-200 ${
                 canGoPrevious
-                  ? "transform bg-gray-100 text-gray-700 hover:scale-105 hover:bg-gray-200 hover:shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  ? "transform cursor-pointer bg-gray-100 text-gray-700 hover:scale-105 hover:bg-gray-200 hover:shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                   : "cursor-not-allowed bg-gray-50 text-gray-400 dark:bg-gray-900 dark:text-gray-600"
               }`}
               aria-label="Go to previous question"
@@ -192,8 +192,8 @@ const QuestionDisplay = memo(function QuestionDisplay({
               className={`group flex items-center space-x-3 rounded-xl px-8 py-4 font-bold text-white transition-all duration-300 ${
                 selectedAnswer
                   ? isLastQuestion
-                    ? "transform bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-[1.02] hover:from-green-600 hover:to-emerald-700 hover:shadow-lg"
-                    : "transform bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:from-blue-700 hover:to-purple-700 hover:shadow-lg"
+                    ? "transform cursor-pointer bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-[1.02] hover:from-green-600 hover:to-emerald-700 hover:shadow-lg"
+                    : "transform cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02] hover:from-blue-700 hover:to-purple-700 hover:shadow-lg"
                   : "cursor-not-allowed bg-gray-300 dark:bg-gray-700"
               }`}
               aria-label={
