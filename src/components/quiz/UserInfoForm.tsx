@@ -15,7 +15,7 @@ interface FormErrors {
 
 export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
   const [formData, setFormData] = useState<UserInfo>({
-    name: "Chấp Hịp",
+    name: "Chấn Hịp",
     studentNumber: "20240001",
     classNumber: "A1",
     major: "Công nghệ thông tin",
@@ -396,7 +396,7 @@ export default function UserInfoForm({ onSubmit }: UserInfoFormProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group relative w-full cursor-pointer transform overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:rounded-2xl sm:px-6 sm:py-4 sm:text-base"
+                className="group relative w-full transform cursor-pointer overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:rounded-2xl sm:px-6 sm:py-4 sm:text-base"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                 <div className="relative flex items-center justify-center space-x-2">

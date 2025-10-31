@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Download, Share2, Home, RotateCcw } from "lucide-react";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 
 interface QuizCertificateProps {
   userName: string;
@@ -72,213 +72,156 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
     setIsDownloading(true);
 
     try {
-      // Pre-load and convert logo image to data URL
-      const logoImg = element.querySelector(
-        'img[alt="FMIB Banner"]'
-      ) as HTMLImageElement;
-      let logoDataUrl = "";
+      // Wait for fonts to be ready
+      await document.fonts.ready;
 
-      if (logoImg && logoImg.complete) {
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = logoImg.naturalWidth || 400;
-          canvas.height = logoImg.naturalHeight || 120;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(logoImg, 0, 0);
-            logoDataUrl = canvas.toDataURL("image/png");
-          }
-        } catch {
-          console.log("Could not convert logo to data URL, will use fallback");
+      // Create inline font styles as fallback
+      const fontStyles = document.createElement('style');
+      fontStyles.textContent = `
+        @font-face {
+          font-family: 'Brush Script MT';
+          src: local('Brush Script MT'), local('BrushScriptMT'), url('data:font/woff2;base64,') format('woff2');
+          font-display: block;
         }
+        @font-face {
+          font-family: 'Times New Roman';
+          src: local('Times New Roman');
+          font-display: block;
+        }
+      `;
+
+      // Temporarily add font styles to ensure they're available
+      const originalElement = element.cloneNode(true) as HTMLElement;
+      originalElement.appendChild(fontStyles.cloneNode(true));
+
+      // Generate the image using html-to-image with error handling for CSS access
+      let dataUrl = "";
+      try {
+        dataUrl = await toPng(element, {
+          quality: 1.0,
+          pixelRatio: 3, // Higher resolution for better quality
+          backgroundColor: "#ffffff",
+          width: 800,
+          height: element.offsetHeight / scale,
+          style: {
+            transform: "none", // Remove scale for export
+            width: "800px",
+            minWidth: "800px",
+            maxWidth: "800px",
+            fontFamily: "'Times New Roman', Times, serif",
+          },
+          filter: (node) => {
+            // Exclude print:hidden elements
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              return !element.classList.contains("print:hidden");
+            }
+            return true;
+          },
+        });
+      } catch (cssError) {
+        console.warn("CSS access error, falling back to alternative method:", cssError);
+        // Fallback: create a simple version without complex CSS processing
+        dataUrl = await toPng(element, {
+          quality: 0.9,
+          pixelRatio: 2,
+          backgroundColor: "#ffffff",
+          width: 800,
+          height: element.offsetHeight / scale,
+          style: {
+            transform: "none",
+            width: "800px",
+            fontFamily: "serif", // Use generic font family
+          },
+          filter: (node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              return !element.classList.contains("print:hidden");
+            }
+            return true;
+          },
+          // Skip CSS processing that causes the error
+          skipAutoScale: true,
+        });
       }
 
-      // Wait a bit to ensure all styles are applied
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Create a canvas from the certificate element with improved configuration
-      const canvas = await html2canvas(element, {
-        scale: 3, // Higher resolution for better quality
-        useCORS: true, // Allow cross-origin images
-        allowTaint: true, // Allow tainted canvas for external images
-        backgroundColor: "#ffffff",
-        logging: false,
-        width: 800, // Use base width for consistent export
-        height: element.offsetHeight / scale, // Adjust height based on current scale
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        foreignObjectRendering: false, // Disable for better compatibility
-        imageTimeout: 0, // No timeout
-        removeContainer: false,
-        onclone: (clonedDoc) => {
-          // Apply all styles explicitly to the cloned document
-          const clonedElement = clonedDoc.getElementById(
-            "certificateContainer"
-          );
-          if (clonedElement) {
-            // Set explicit styles - remove scale for export
-            clonedElement.style.width = "800px";
-            clonedElement.style.minWidth = "800px";
-            clonedElement.style.maxWidth = "800px";
-            clonedElement.style.margin = "0";
-            clonedElement.style.backgroundColor = "#ffffff";
-            clonedElement.style.border = "12px solid #002b5c";
-            clonedElement.style.fontFamily = "'Times New Roman', Times, serif";
-            clonedElement.style.overflow = "visible";
-            clonedElement.style.display = "block";
-            clonedElement.style.boxShadow = "none";
-            clonedElement.style.padding = "0";
-            clonedElement.style.transform = "none"; // Remove scale for export
-          }
-
-          // Force Times New Roman font on all elements
-          const allElements = clonedElement?.querySelectorAll("*");
-          if (allElements) {
-            allElements.forEach((el) => {
-              const element = el as HTMLElement;
-              element.style.fontFamily = "'Times New Roman', Times, serif";
-            });
-          }
-
-          // Ensure all CSS variables are applied as actual values
-          const style = clonedDoc.createElement("style");
-          style.textContent = `
-            * {
-              font-family: 'Times New Roman', Times, serif !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            #certificateContainer {
-              background-color: #ffffff !important;
-              border: 12px solid #002b5c !important;
-            }
-            [style*="color: var(--dark-blue)"] {
-              color: #002b5c !important;
-            }
-            [style*="color: var(--medium-blue)"] {
-              color: #003366 !important;
-            }
-            .text-\\[\\#003366\\] {
-              color: #003366 !important;
-            }
-            .text-\\[\\#dc3545\\] {
-              color: #dc3545 !important;
-            }
-            .text-\\[\\#333333\\] {
-              color: #333333 !important;
-            }
-            .bg-white {
-              background-color: #ffffff !important;
-            }
-            .border-\\[\\#002b5c\\] {
-              border-color: #002b5c !important;
-            }
-            .text-xl, .text-2xl, .text-4xl {
-              font-family: 'Times New Roman', Times, serif !important;
-              font-weight: bold !important;
-            }
-            img {
-              display: block !important;
-              margin: 0 auto !important;
-            }
-            .text-center {
-              text-align: center !important;
-            }
-            .mx-auto {
-              margin-left: auto !important;
-              margin-right: auto !important;
-            }
-            .print\\:hidden {
-              display: none !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
-
-          // Handle images - use pre-loaded data URL or create fallback
-          const images = clonedElement?.querySelectorAll("img");
-          if (images) {
-            images.forEach((img) => {
-              const htmlImg = img as HTMLImageElement;
-
-              // If we have the pre-loaded data URL, use it
-              if (logoDataUrl) {
-                htmlImg.src = logoDataUrl;
-              } else {
-                // Create a high-quality FMIB logo as fallback
-                const logoCanvas = clonedDoc.createElement("canvas");
-                const logoCtx = logoCanvas.getContext("2d");
-                if (logoCtx) {
-                  // Set canvas size for high DPI
-                  logoCanvas.width = 600;
-                  logoCanvas.height = 180;
-
-                  // Clear canvas with white background
-                  logoCtx.fillStyle = "#ffffff";
-                  logoCtx.fillRect(0, 0, 600, 180);
-
-                  // Draw FMIB text with professional styling
-                  logoCtx.fillStyle = "#002b5c";
-                  logoCtx.font = "bold 72px 'Times New Roman', Times, serif";
-                  logoCtx.textAlign = "center";
-                  logoCtx.textBaseline = "middle";
-                  logoCtx.fillText("FMIB", 300, 70);
-
-                  // Add club text
-                  logoCtx.font = "28px 'Times New Roman', Times, serif";
-                  logoCtx.fillStyle = "#003366";
-                  logoCtx.fillText(
-                    "Future Marketer International Businessman",
-                    300,
-                    130
-                  );
-                }
-                htmlImg.src = logoCanvas.toDataURL("image/png");
-              }
-
-              htmlImg.style.display = "block";
-              htmlImg.style.margin = "0 auto";
-              htmlImg.style.maxWidth = "100%";
-              htmlImg.style.height = "auto";
-              htmlImg.crossOrigin = "anonymous";
-            });
-          }
-
-          // Remove any print:hidden elements
-          const hiddenElements =
-            clonedElement?.querySelectorAll(".print\\:hidden");
-          hiddenElements?.forEach((el) => el.remove());
-        },
-      });
-
-      // Convert canvas to blob and download
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `FMIB-Quiz-Certificate-${userName.replace(
-              /\s+/g,
-              "-"
-            )}-${Date.now()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          }
-          setIsDownloading(false);
-        },
-        "image/png",
-        1.0
-      );
+      // Download the image
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `FMIB-Quiz-Certificate-${userName.replace(
+        /\s+/g,
+        "-"
+      )}-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
-      console.error("Error generating certificate:", error);
+      console.error("Error generating certificate with html-to-image:", error);
+
+      // Try alternative approach with explicit font handling
+      try {
+        await downloadWithCanvasFallback();
+      } catch (canvasError) {
+        console.error("Canvas fallback also failed:", canvasError);
+        // Final fallback to print
+        window.print();
+      }
+    } finally {
       setIsDownloading(false);
-      // Fallback to print if html2canvas fails
-      window.print();
     }
+  };
+
+  // Fallback method using Canvas API directly
+  const downloadWithCanvasFallback = async () => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get canvas context");
+
+    canvas.width = 2400; // High resolution
+    canvas.height = 1800; // High resolution
+
+    // Draw white background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw border
+    ctx.strokeStyle = "#002b5c";
+    ctx.lineWidth = 36;
+    ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+
+    // Draw certificate content using Canvas API
+    ctx.fillStyle = "#002b5c";
+    ctx.font = "bold 108px 'Times New Roman', serif";
+    ctx.textAlign = "center";
+    ctx.fillText("CHỨNG NHẬN HOÀN THÀNH", canvas.width / 2, 300);
+
+    // Draw user name
+    ctx.fillStyle = "#003366";
+    ctx.font = "bold 72px 'Times New Roman', serif";
+    ctx.fillText(userName, canvas.width / 2, 600);
+
+    // Draw signature with fallback font
+    ctx.fillStyle = "#002b5c";
+    ctx.font = "italic 54px cursive"; // Use generic cursive as fallback
+    ctx.fillText("TS. Châu Văn Thưởng", canvas.width / 3, 1400);
+    ctx.fillText("Hoàng Bảo Trâm", (2 * canvas.width) / 3, 1400);
+
+    // Convert to blob and download
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `FMIB-Quiz-Certificate-${userName.replace(
+          /\s+/g,
+          "-"
+        )}-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+    }, "image/png", 1.0);
   };
 
   const handleShare = () => {
@@ -470,7 +413,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
                   (Đã ký)
                 </div>
                 <div
-                  className="font-normal text-2xl"
+                  className="font-normal text-2xl signature-brush"
                   style={{
                     fontFamily: "'Brush Script MT', cursive",
                     marginTop: "0.5rem",
@@ -489,7 +432,7 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
                   (Đã ký)
                 </div>
                 <div
-                  className="font-normal text-2xl"
+                  className="font-normal text-2xl signature-brush"
                   style={{
                     fontFamily: "'Brush Script MT', cursive",
                     marginTop: "0.5rem",
@@ -537,6 +480,19 @@ export const QuizCertificate: React.FC<QuizCertificateProps> = ({
           :root {
             --dark-blue: #002b5c;
             --medium-blue: #003366;
+          }
+
+          /* Ensure fonts are loaded and displayed correctly */
+          @font-face {
+            font-family: 'Brush Script MT';
+            src: local('Brush Script MT'), local('BrushScriptMT');
+            font-display: block;
+          }
+
+          @font-face {
+            font-family: 'Times New Roman';
+            src: local('Times New Roman');
+            font-display: block;
           }
 
           /* Certificate export optimization */
