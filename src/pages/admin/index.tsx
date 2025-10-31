@@ -49,26 +49,11 @@ const QuestionManagePage: NextPage = () => {
     },
   );
 
-  // Mutation for deleting all questions
-  const clearAllQuestionsMutation = useSWRMutation(
-    "/blob-questions",
-    async (url) => {
-      const response = await apiClient.delete(url, true);
-      return response;
-    },
-    {
-      onSuccess: () => {
-        mutate(); // Revalidate the data after successful mutation
-      },
-    },
-  );
-
-  const isSaving =
-    saveQuestionsMutation.isMutating || clearAllQuestionsMutation.isMutating;
+  
+  const isSaving = saveQuestionsMutation.isMutating;
   const saveError =
     error?.message ||
     saveQuestionsMutation.error?.message ||
-    clearAllQuestionsMutation.error?.message ||
     null;
 
   // Logout function
@@ -114,6 +99,13 @@ const QuestionManagePage: NextPage = () => {
 
   // State for tracking questions to be added in batch
   const [pendingQuestions, setPendingQuestions] = useState<Question[]>([]);
+
+  // State for delete mode and selected questions
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set());
+
+  // State for tracking delete operation
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData({ ...formData, question: e.target.value });
@@ -236,29 +228,6 @@ const QuestionManagePage: NextPage = () => {
     );
   };
 
-  const handleDeleteQuestion = async (questionId: string) => {
-    showDialog(
-      "Delete Question",
-      "Are you sure you want to delete this question?",
-      "confirm",
-      async () => {
-        const updatedQuestions = questions.filter((q) => q.id !== questionId);
-
-        try {
-          await saveQuestionsMutation.trigger({ questions: updatedQuestions });
-
-          showDialog(
-            "Success",
-            "Question deleted successfully from blob storage!",
-            "success",
-          );
-        } catch (error) {
-          console.error("Failed to delete question from blob storage:", error);
-        }
-      },
-    );
-  };
-
   const handleExportQuestions = () => {
     const dataStr = JSON.stringify(questions, null, 2);
     const dataUri =
@@ -317,27 +286,7 @@ const QuestionManagePage: NextPage = () => {
     event.target.value = "";
   };
 
-  const handleClearAll = async () => {
-    showDialog(
-      "Clear All Questions",
-      "Are you sure you want to delete all questions from blob storage? This action cannot be undone.",
-      "confirm",
-      async () => {
-        try {
-          await clearAllQuestionsMutation.trigger();
-
-          showDialog(
-            "Success",
-            "All questions cleared successfully from blob storage!",
-            "success",
-          );
-        } catch (error) {
-          console.error("Failed to clear questions from blob storage:", error);
-        }
-      },
-    );
-  };
-
+  
   return (
     <>
       <Head>
@@ -440,14 +389,7 @@ const QuestionManagePage: NextPage = () => {
                       className="hidden"
                     />
                   </label>
-                  <button
-                    onClick={handleClearAll}
-                    disabled={questions.length === 0 || isSaving}
-                    className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                  >
-                    Clear All
-                  </button>
-                </div>
+                                  </div>
               </div>
 
               {/* Error Display */}
@@ -475,7 +417,7 @@ const QuestionManagePage: NextPage = () => {
                     </div>
                     <div className="ml-auto pl-3">
                       <button
-                        onClick={() => setSaveError(null)}
+                        onClick={() => {}}
                         className="text-red-500 hover:text-red-700"
                       >
                         <svg
@@ -686,15 +628,116 @@ const QuestionManagePage: NextPage = () => {
                 {/* Questions List */}
                 <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                   <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Current Questions
-                    </h3>
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      {questions.length}{" "}
-                      {questions.length === 1 ? "question" : "questions"}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Current Questions
+                      </h3>
+                      <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        {questions.length}{" "}
+                        {questions.length === 1 ? "question" : "questions"}
+                      </span>
+                    </div>
+                    {!isDeleteMode ? (
+                      <button
+                        onClick={() => {
+                          setIsDeleteMode(true);
+                          setSelectedQuestions(new Set());
+                        }}
+                        disabled={questions.length === 0 || isSaving || isDeleting}
+                        className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                      >
+                        Delete questions
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {selectedQuestions.size} selected
+                        </span>
+                        <button
+                          onClick={() => {
+                            setIsDeleteMode(false);
+                            setSelectedQuestions(new Set());
+                          }}
+                          disabled={isSaving || isDeleting}
+                          className="rounded-md bg-gray-600 px-4 py-2 font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (selectedQuestions.size === 0) {
+                              showDialog("No Selection", "Please select at least one question to delete.", "warning");
+                              return;
+                            }
+                            showDialog(
+                              "Delete Questions",
+                              `Are you sure you want to delete ${selectedQuestions.size} question${selectedQuestions.size > 1 ? 's' : ''}?`,
+                              "confirm",
+                              async () => {
+                                setIsDeleting(true);
+                                const updatedQuestions = questions.filter(q => !selectedQuestions.has(q.id));
+                                try {
+                                  await saveQuestionsMutation.trigger({ questions: updatedQuestions });
+                                  setIsDeleteMode(false);
+                                  setSelectedQuestions(new Set());
+                                  showDialog(
+                                    "Success",
+                                    `${selectedQuestions.size} question${selectedQuestions.size > 1 ? 's' : ''} deleted successfully!`,
+                                    "success",
+                                  );
+                                } catch (error) {
+                                  console.error("Failed to delete questions:", error);
+                                } finally {
+                                  setIsDeleting(false);
+                                }
+                              }
+                            );
+                          }}
+                          disabled={isSaving || isDeleting || selectedQuestions.size === 0}
+                          className="rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                        >
+                          {isDeleting ? 'Deleting...' : 'Confirm'}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-3">
+                  <div className="relative">
+                    {/* Loading Overlay */}
+                    {isDeleting && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+                        <div className="flex flex-col items-center space-y-4">
+                          <div className="flex h-12 w-12 items-center justify-center">
+                            <svg
+                              className="animate-spin h-8 w-8 text-blue-600"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          </div>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">
+                            Deleting {selectedQuestions.size} question{selectedQuestions.size > 1 ? 's' : ''}...
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Please wait while we process your request
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    <div className={`space-y-3 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
                     {questions.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12">
                         <svg
@@ -721,16 +764,40 @@ const QuestionManagePage: NextPage = () => {
                       questions.map((question, qIndex) => (
                         <div
                           key={question.id}
-                          className="group relative rounded-lg border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-4 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md dark:border-gray-600 dark:from-gray-800 dark:to-gray-800/50 dark:hover:border-blue-600"
+                          className={`group relative rounded-lg border bg-gradient-to-br from-white to-gray-50 p-4 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md dark:from-gray-800 dark:to-gray-800/50 dark:hover:border-blue-600 ${
+                            isDeleteMode && selectedQuestions.has(question.id)
+                              ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-600'
+                          }`}
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-3">
                               {/* Question Header */}
                               <div className="flex items-start gap-3">
-                                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                                  {qIndex + 1}
-                                </div>
-                                <h4 className="flex-1 pt-0.5 leading-snug font-medium text-gray-900 dark:text-white">
+                                {isDeleteMode ? (
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedQuestions.has(question.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedQuestions(new Set([...selectedQuestions, question.id]));
+                                      } else {
+                                        const newSelected = new Set(selectedQuestions);
+                                        newSelected.delete(question.id);
+                                        setSelectedQuestions(newSelected);
+                                      }
+                                    }}
+                                    disabled={isDeleting}
+                                    className={`h-5 w-5 rounded border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-blue-500 dark:focus:ring-blue-400 ${
+                                      isDeleting ? 'cursor-not-allowed opacity-50' : ''
+                                    }`}
+                                  />
+                                ) : (
+                                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                    {qIndex + 1}
+                                  </div>
+                                )}
+                                <h4 className={`flex-1 pt-0.5 leading-snug font-medium text-gray-900 dark:text-white ${isDeleteMode ? 'ml-2' : ''}`}>
                                   {question.question}
                                 </h4>
                               </div>
@@ -775,31 +842,11 @@ const QuestionManagePage: NextPage = () => {
                               </div>
                             </div>
 
-                            {/* Delete Button */}
-                            <button
-                              onClick={() => handleDeleteQuestion(question.id)}
-                              disabled={isSaving}
-                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                              title="Delete question"
-                            >
-                              <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
-                              </svg>
-                            </button>
-                          </div>
+                                                      </div>
                         </div>
                       ))
                     )}
+                    </div>
                   </div>
                 </div>
               </div>

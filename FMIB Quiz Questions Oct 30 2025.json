@@ -36,8 +36,8 @@
       },
       {
         "id": "2",
-        "text": "Thị trường mục tiêu mà doanh nghiệp muốn hướng đến",
-        "isCorrect": true
+        "text": "Thị trường chợ đen",
+        "isCorrect": false
       },
       {
         "id": "3",
@@ -46,8 +46,8 @@
       },
       {
         "id": "4",
-        "text": "Thị trường chợ đen",
-        "isCorrect": false
+        "text": "Thị trường mục tiêu mà doanh nghiệp muốn hướng đến",
+        "isCorrect": true
       }
     ]
   },
@@ -57,8 +57,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Search Engine Optimization",
-        "isCorrect": true
+        "text": "Sales Enhancement Operation",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -72,8 +72,8 @@
       },
       {
         "id": "4",
-        "text": "Sales Enhancement Operation",
-        "isCorrect": false
+        "text": "Search Engine Optimization",
+        "isCorrect": true
       }
     ]
   },
@@ -88,8 +88,8 @@
       },
       {
         "id": "2",
-        "text": "LinkedIn Marketing",
-        "isCorrect": true
+        "text": "Facebook Gaming",
+        "isCorrect": false
       },
       {
         "id": "3",
@@ -98,8 +98,8 @@
       },
       {
         "id": "4",
-        "text": "Facebook Gaming",
-        "isCorrect": false
+        "text": "LinkedIn Marketing",
+        "isCorrect": true
       }
     ]
   },
@@ -109,8 +109,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Kêu gọi khách hàng hành động cụ thể",
-        "isCorrect": true
+        "text": "Thu thập thông tin khách hàng",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -124,8 +124,8 @@
       },
       {
         "id": "4",
-        "text": "Thu thập thông tin khách hàng",
-        "isCorrect": false
+        "text": "Kêu gọi khách hàng hành động cụ thể",
+        "isCorrect": true
       }
     ]
   },
@@ -135,8 +135,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Nhận thức về thương hiệu",
-        "isCorrect": true
+        "text": "Lịch sử thương hiệu",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -150,8 +150,8 @@
       },
       {
         "id": "4",
-        "text": "Lịch sử thương hiệu",
-        "isCorrect": false
+        "text": "Nhận thức về thương hiệu",
+        "isCorrect": true
       }
     ]
   },
@@ -161,8 +161,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "(Lợi nhuận - Chi phí) / Chi phí × 100%",
-        "isCorrect": true
+        "text": "Doanh thu / Chi phí × 100%",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -176,8 +176,8 @@
       },
       {
         "id": "4",
-        "text": "Doanh thu / Chi phí × 100%",
-        "isCorrect": false
+        "text": "(Lợi nhuận - Chi phí) / Chi phí × 100%",
+        "isCorrect": true
       }
     ]
   },
@@ -192,8 +192,8 @@
       },
       {
         "id": "2",
-        "text": "Tạo ra nội dung giá trị và hữu ích cho khách hàng",
-        "isCorrect": true
+        "text": "Giảm giá sản phẩm",
+        "isCorrect": false
       },
       {
         "id": "3",
@@ -202,8 +202,8 @@
       },
       {
         "id": "4",
-        "text": "Giảm giá sản phẩm",
-        "isCorrect": false
+        "text": "Tạo ra nội dung giá trị và hữu ích cho khách hàng",
+        "isCorrect": true
       }
     ]
   },
@@ -213,8 +213,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Tạo ra khách hàng tiềm năng",
-        "isCorrect": true
+        "text": "Phát triển sản phẩm mới",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -228,8 +228,8 @@
       },
       {
         "id": "4",
-        "text": "Phát triển sản phẩm mới",
-        "isCorrect": false
+        "text": "Tạo ra khách hàng tiềm năng",
+        "isCorrect": true
       }
     ]
   },
@@ -249,13 +249,13 @@
       },
       {
         "id": "3",
-        "text": "Vì có thể cá nhân hóa và tiếp cận trực tiếp khách hàng",
-        "isCorrect": true
+        "text": "Vì không cần kỹ năng chuyên môn",
+        "isCorrect": false
       },
       {
         "id": "4",
-        "text": "Vì không cần kỹ năng chuyên môn",
-        "isCorrect": false
+        "text": "Vì có thể cá nhân hóa và tiếp cận trực tiếp khách hàng",
+        "isCorrect": true
       }
     ]
   },
@@ -265,8 +265,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Kiểm tra hai phiên bản khác nhau để xem phiên bản nào hiệu quả hơn",
-        "isCorrect": true
+        "text": "Kiểm tra dịch vụ khách hàng",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -280,8 +280,8 @@
       },
       {
         "id": "4",
-        "text": "Kiểm tra dịch vụ khách hàng",
-        "isCorrect": false
+        "text": "Kiểm tra hai phiên bản khác nhau để xem phiên bản nào hiệu quả hơn",
+        "isCorrect": true
       }
     ]
   },
@@ -291,8 +291,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Hành trình của khách hàng từ khi biết đến sản phẩm đến khi mua hàng",
-        "isCorrect": true
+        "text": "Đánh giá của khách hàng",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -306,8 +306,8 @@
       },
       {
         "id": "4",
-        "text": "Đánh giá của khách hàng",
-        "isCorrect": false
+        "text": "Hành trình của khách hàng từ khi biết đến sản phẩm đến khi mua hàng",
+        "isCorrect": true
       }
     ]
   },
@@ -317,8 +317,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Marketing qua người có ảnh hưởng trên mạng xã hội",
-        "isCorrect": true
+        "text": "Marketing báo chí",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -332,8 +332,8 @@
       },
       {
         "id": "4",
-        "text": "Marketing báo chí",
-        "isCorrect": false
+        "text": "Marketing qua người có ảnh hưởng trên mạng xã hội",
+        "isCorrect": true
       }
     ]
   },
@@ -343,8 +343,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Tỷ lệ chuyển đổi từ người xem thành khách hàng",
-        "isCorrect": true
+        "text": "Tỷ lệ khách hàng quay lại",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -358,8 +358,8 @@
       },
       {
         "id": "4",
-        "text": "Tỷ lệ khách hàng quay lại",
-        "isCorrect": false
+        "text": "Tỷ lệ chuyển đổi từ người xem thành khách hàng",
+        "isCorrect": true
       }
     ]
   },
@@ -369,8 +369,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Customer Relationship Management",
-        "isCorrect": true
+        "text": "Customer Revenue Management",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -384,8 +384,8 @@
       },
       {
         "id": "4",
-        "text": "Customer Revenue Management",
-        "isCorrect": false
+        "text": "Customer Relationship Management",
+        "isCorrect": true
       }
     ]
   },
@@ -395,8 +395,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Phân tích lưu lượng truy cập website và hành vi người dùng",
-        "isCorrect": true
+        "text": "Thiết kế website",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -410,8 +410,8 @@
       },
       {
         "id": "4",
-        "text": "Thiết kế website",
-        "isCorrect": false
+        "text": "Phân tích lưu lượng truy cập website và hành vi người dùng",
+        "isCorrect": true
       }
     ]
   },
@@ -421,8 +421,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Key Performance Indicator - Chỉ số hiệu suất chính",
-        "isCorrect": true
+        "text": "Key Promotion Indicator - Chỉ số xúc tiến chính",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -436,8 +436,8 @@
       },
       {
         "id": "4",
-        "text": "Key Promotion Indicator - Chỉ số xúc tiến chính",
-        "isCorrect": false
+        "text": "Key Performance Indicator - Chỉ số hiệu suất chính",
+        "isCorrect": true
       }
     ]
   },
@@ -447,8 +447,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Facebook, Instagram, Twitter, LinkedIn, TikTok",
-        "isCorrect": true
+        "text": "Google, Bing, Yahoo",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -462,8 +462,8 @@
       },
       {
         "id": "4",
-        "text": "Google, Bing, Yahoo",
-        "isCorrect": false
+        "text": "Facebook, Instagram, Twitter, LinkedIn, TikTok",
+        "isCorrect": true
       }
     ]
   },
@@ -473,8 +473,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Nghệ thuật viết nội dung quảng cáo persuasive",
-        "isCorrect": true
+        "text": "Viết nội dung học thuật",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -488,8 +488,8 @@
       },
       {
         "id": "4",
-        "text": "Viết nội dung học thuật",
-        "isCorrect": false
+        "text": "Nghệ thuật viết nội dung quảng cáo persuasive",
+        "isCorrect": true
       }
     ]
   },
@@ -499,8 +499,8 @@
     "answers": [
       {
         "id": "1",
-        "text": "Phân khúc thị trường - chia thị trường thành các nhóm nhỏ",
-        "isCorrect": true
+        "text": "Quảng cáo trên thị trường",
+        "isCorrect": false
       },
       {
         "id": "2",
@@ -514,8 +514,8 @@
       },
       {
         "id": "4",
-        "text": "Quảng cáo trên thị trường",
-        "isCorrect": false
+        "text": "Phân khúc thị trường - chia thị trường thành các nhóm nhỏ",
+        "isCorrect": true
       }
     ]
   }
