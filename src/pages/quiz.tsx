@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import confetti from "canvas-confetti";
+import { motion, AnimatePresence } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import UserInfoForm from "@/components/quiz/UserInfoForm";
 import QuestionDisplay from "@/components/quiz/QuestionDisplay";
@@ -26,20 +27,23 @@ type QuizStep = "info" | "quiz" | "results";
 
 // Helper functions for performance feedback (temporary until QuizResults component is integrated)
 const getPerformanceMessage = (percentage: number): string => {
-  if (percentage >= 90) return "Hiệu suất xuất sắc! 🎉";
-  if (percentage >= 80) return "Làm việc tuyệt vời! 🌟";
-  if (percentage >= 70) return "Làm tốt! 👍";
-  if (percentage >= 60) return "Nỗ lực tốt! 💪";
-  if (percentage >= 50) return "Tiếp tục rèn luyện! 📚";
-  return "Cần cải thiện! 🎯";
+  if (percentage >= 90)
+    return "Xuất sắc! Bạn đã hoàn thành xuất sắc bài kiểm tra 🎉";
+  if (percentage >= 80) return "Rất tuyệt vời! Kết quả của bạn rất ấn tượng ⭐";
+  if (percentage >= 70) return "Tốt lắm! Bạn đã làm rất tốt đó 👍";
+  if (percentage >= 60) return "Khá tốt! Hãy tiếp tục nỗ lực nhé 💪";
+  if (percentage >= 50) return "Tạm được! Cần cố gắng thêm nữa 📚";
+  return "Hãy cố gắng hơn ở lần sau nhé 🎯";
 };
 
 const getPerformanceAdvice = (percentage: number): string => {
-  if (percentage >= 80) return "Bạn đã thành thạo tài liệu này!";
-  if (percentage >= 70) return "Bạn có hiểu biết tốt về tài liệu.";
-  if (percentage >= 60) return "Xem lại các phần bạn gặp khó khăn.";
-  if (percentage >= 50) return "Cân nhắc dành nhiều thời gian học hơn.";
-  return "Đừng bỏ cuộc! Luyện tập tạo nên sự hoàn hảo.";
+  if (percentage >= 80) return "Cháy hết mình! Kiến thức đỉnh chóp luôn nè 🔥";
+  if (percentage >= 70) return "U là trời, học giỏi thế biết không! 💯";
+  if (percentage >= 60)
+    return "Oke oke, kha khá rồi đấy, hơi lại tí là perfect 👌";
+  if (percentage >= 50)
+    return "Mild nè, cần học thêm xíu nữa là lên hương liền 💅";
+  return "Cứ từ từ từ, fail hôm nay mai success thôi mà 🌱";
 };
 
 const QuizPage: NextPage = () => {
@@ -149,7 +153,10 @@ const QuizPage: NextPage = () => {
           // Show completed results
           setUserInfo(existingSession.userInfo);
           setCurrentStep("results");
-        } else if (existingSession && isSessionExpired(existingSession.startTime)) {
+        } else if (
+          existingSession &&
+          isSessionExpired(existingSession.startTime)
+        ) {
           // Clear expired session
           storage.clearQuizSession();
         }
@@ -258,7 +265,7 @@ const QuizPage: NextPage = () => {
   // Auto-select answer D in development mode for faster testing
   useEffect(() => {
     if (
-      process.env.NODE_ENV === 'development' &&
+      process.env.NODE_ENV === "development" &&
       questions.length > 0 &&
       currentQuestionIndex < questions.length
     ) {
@@ -266,20 +273,32 @@ const QuizPage: NextPage = () => {
       const alreadySelected = getCurrentSelectedAnswer();
 
       // Only auto-select if no answer is already selected
-      if (!alreadySelected && currentQuestion.answers && currentQuestion.answers.length > 0) {
+      if (
+        !alreadySelected &&
+        currentQuestion.answers &&
+        currentQuestion.answers.length > 0
+      ) {
         // Find answer D (typically the 4th option, index 3)
-        const answerD = currentQuestion.answers.find((answer) =>
-          answer.id.toLowerCase().includes('d') ||
-          currentQuestion.answers.indexOf(answer) === 3
+        const answerD = currentQuestion.answers.find(
+          (answer) =>
+            answer.id.toLowerCase().includes("d") ||
+            currentQuestion.answers.indexOf(answer) === 3,
         );
 
         if (answerD) {
-          console.log(`🧪 Development mode: Auto-selecting answer D for question ${currentQuestionIndex + 1}`);
+          console.log(
+            `🧪 Development mode: Auto-selecting answer D for question ${currentQuestionIndex + 1}`,
+          );
           handleAnswerSelect(answerD.id);
         }
       }
     }
-  }, [currentQuestionIndex, questions, getCurrentSelectedAnswer, handleAnswerSelect]);
+  }, [
+    currentQuestionIndex,
+    questions,
+    getCurrentSelectedAnswer,
+    handleAnswerSelect,
+  ]);
 
   // Handle next question
   const handleNext = useCallback(() => {
@@ -796,149 +815,202 @@ const QuizPage: NextPage = () => {
                             </p>
 
                             {/* Quiz Results */}
-                            {quizResult && (
-                              <div className="mb-3 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-2 shadow-xl backdrop-blur-sm transition-all duration-500 hover:shadow-2xl sm:mb-6 sm:p-4 lg:p-6 dark:border dark:border-gray-700/50 dark:from-gray-900/50 dark:via-blue-900/30 dark:to-purple-900/30">
-                                <div className="relative">
-                                  {/* Animated background elements */}
-                                  <div className="absolute -top-4 -left-4 h-8 w-8 animate-pulse rounded-full bg-blue-400/20 blur-xl"></div>
-                                  <div className="animation-delay-1000 absolute -right-4 -bottom-4 h-8 w-8 animate-pulse rounded-full bg-purple-400/20 blur-xl"></div>
-                                  <div className="animation-delay-500 absolute top-1/2 -left-2 h-4 w-4 animate-ping rounded-full bg-indigo-400/30"></div>
+                            <AnimatePresence>
+                              {quizResult && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.9 }}
+                                  transition={{
+                                    duration: 0.5,
+                                    ease: "easeOut",
+                                  }}
+                                  className="mb-3 sm:mb-6"
+                                >
+                                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white/20 via-white/10 to-white/5 shadow-2xl ring-1 ring-white/20 backdrop-blur-xl dark:from-gray-900/20 dark:via-blue-900/10 dark:to-purple-900/5">
+                                    {/* Animated background gradient */}
+                                    <div className="animate-gradient-shift absolute inset-0 bg-gradient-to-br from-blue-400/10 via-purple-400/10 to-pink-400/10"></div>
 
-                                  <h3 className="relative mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-center text-sm font-bold text-transparent sm:mb-4 sm:text-base lg:text-lg">
-                                    ✨ Kết quả bài trắc nghiệm ✨
-                                  </h3>
+                                    <div className="relative p-6 sm:p-8 lg:p-10">
+                                      <motion.h3
+                                        initial={{ y: -20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-center text-lg font-bold text-transparent sm:text-xl lg:text-2xl"
+                                      >
+                                        ✨ Kết quả bài trắc nghiệm ✨
+                                      </motion.h3>
 
-                                  {/* Score Display */}
-                                  <div className="mb-4 text-center sm:mb-6">
-                                    <div className="relative inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg sm:h-20 sm:w-20 lg:h-24 lg:w-24">
-                                      <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-blue-400 to-purple-500 opacity-50 blur-md"></div>
-                                      <div className="absolute inset-0 animate-ping rounded-full border-2 border-white/30"></div>
-                                      <div className="relative">
-                                        <p className="animate-fade-in text-base font-bold text-white drop-shadow-lg sm:text-xl lg:text-2xl">
-                                          {quizResult.summary?.percentage || 0}%
-                                        </p>
-                                        <p className="text-xs font-medium text-white/90 drop-shadow">
-                                          Điểm số
-                                        </p>
-                                      </div>
-                                    </div>
-                                    {/* Score indicator badges */}
-                                    <div className="mt-2 flex justify-center space-x-1">
-                                      {(quizResult.summary?.percentage || 0) >=
-                                        90 && (
-                                        <span className="animate-bounce rounded-full bg-yellow-400 px-2 py-1 text-xs font-bold text-yellow-900 shadow-md">
-                                          🏆 Xuất sắc
-                                        </span>
-                                      )}
-                                      {(quizResult.summary?.percentage || 0) >=
-                                        70 &&
-                                        (quizResult.summary?.percentage || 0) <
-                                          90 && (
-                                          <span className="animate-bounce rounded-full bg-blue-400 px-2 py-1 text-xs font-bold text-blue-900 shadow-md">
-                                            🌟 Tốt
-                                          </span>
-                                        )}
-                                      {(quizResult.summary?.percentage || 0) >=
-                                        50 &&
-                                        (quizResult.summary?.percentage || 0) <
-                                          70 && (
-                                          <span className="animate-bounce rounded-full bg-green-400 px-2 py-1 text-xs font-bold text-green-900 shadow-md">
-                                            👍 Khá
-                                          </span>
-                                        )}
-                                      {(quizResult.summary?.percentage || 0) <
-                                        50 && (
-                                        <span className="animate-bounce rounded-full bg-orange-400 px-2 py-1 text-xs font-bold text-orange-900 shadow-md">
-                                          📚 Cố gắng
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
+                                      {/* Circular Score Display */}
+                                      <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{
+                                          delay: 0.3,
+                                          type: "spring",
+                                          stiffness: 200,
+                                        }}
+                                        className="mb-8 flex justify-center"
+                                      >
+                                        <div className="relative">
+                                          {/* Outer ring with gradient */}
+                                          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 p-1">
+                                            <div className="h-24 w-24 rounded-full bg-white/90 backdrop-blur-sm sm:h-32 sm:w-32 lg:h-40 lg:w-40 dark:bg-gray-900/90"></div>
+                                          </div>
+                                          {/* Inner content */}
+                                          <div className="relative flex h-24 w-24 items-center justify-center sm:h-32 sm:w-32 lg:h-40 lg:w-40">
+                                            <div className="text-center">
+                                              <motion.p
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                transition={{ delay: 0.5 }}
+                                                className="text-3xl font-bold text-blue-600 sm:text-4xl lg:text-5xl dark:text-blue-400"
+                                              >
+                                                {quizResult.summary
+                                                  ?.percentage || 0}
+                                                %
+                                              </motion.p>
+                                              <p className="text-xs font-medium text-gray-600 sm:text-sm dark:text-gray-400">
+                                                Điểm số
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </motion.div>
 
-                                  {/* Statistics Grid */}
-                                  <div className="mb-4 grid grid-cols-2 gap-2 sm:mb-6 sm:grid-cols-4 sm:gap-3">
-                                    <div className="group relative transform overflow-hidden rounded-xl bg-white/80 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:bg-gray-800/80 dark:shadow-gray-900/50">
-                                      <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-                                      <div className="relative">
-                                        <div className="mb-1 flex justify-center"></div>
-                                        <p className="text-center text-lg font-bold text-gray-900 dark:text-white">
-                                          {quizResult.summary?.totalQuestions ||
-                                            0}
-                                        </p>
-                                        <p className="text-center text-xs font-medium text-gray-600 dark:text-gray-400">
-                                          Tổng câu
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-green-900/30 dark:to-green-800/30 dark:shadow-green-900/50">
-                                      <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-                                      <div className="relative">
-                                        <div className="mb-1 flex justify-center"></div>
-                                        <p className="text-center text-lg font-bold text-green-700 dark:text-green-300">
-                                          {quizResult.summary?.correctAnswers ||
-                                            0}
-                                        </p>
-                                        <p className="text-center text-xs font-medium text-green-600 dark:text-green-400">
-                                          Đúng ✓
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-red-900/30 dark:to-red-800/30 dark:shadow-red-900/50">
-                                      <div className="absolute inset-0 bg-gradient-to-br from-red-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-                                      <div className="relative">
-                                        <div className="mb-1 flex justify-center"></div>
-                                        <p className="text-center text-lg font-bold text-red-700 dark:text-red-300">
-                                          {quizResult.summary
-                                            ?.incorrectAnswers || 0}
-                                        </p>
-                                        <p className="text-center text-xs font-medium text-red-600 dark:text-red-400">
-                                          Sai ✗
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="group relative transform overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 p-3 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg dark:from-purple-900/30 dark:to-purple-800/30 dark:shadow-purple-900/50">
-                                      <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-                                      <div className="relative">
-                                        <div className="mb-1 flex justify-center"></div>
-                                        <p className="text-center text-lg font-bold text-purple-700 dark:text-purple-300">
-                                          {Math.floor(
-                                            (quizResult.summary?.timeSpent ||
-                                              0) / 60,
+                                      {/* Performance Badge */}
+                                      <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.6 }}
+                                        className="mb-8 flex justify-center"
+                                      >
+                                        <div className="inline-flex items-center rounded-full bg-white/80 px-4 py-2 ring-1 ring-white/20 backdrop-blur-sm dark:bg-gray-800/80">
+                                          {(quizResult.summary?.percentage ||
+                                            0) >= 90 && (
+                                            <span className="flex items-center text-sm font-semibold text-yellow-700 dark:text-yellow-300">
+                                              🏆 Xuất sắc
+                                            </span>
                                           )}
-                                          :
-                                          {String(
-                                            (quizResult.summary?.timeSpent ||
-                                              0) % 60,
-                                          ).padStart(2, "0")}
-                                        </p>
-                                        <p className="text-center text-xs font-medium text-purple-600 dark:text-purple-400">
-                                          Thời gian ⏱
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
+                                          {(quizResult.summary?.percentage ||
+                                            0) >= 70 &&
+                                            (quizResult.summary?.percentage ||
+                                              0) < 90 && (
+                                              <span className="flex items-center text-sm font-semibold text-blue-700 dark:text-blue-300">
+                                                🌟 Tốt
+                                              </span>
+                                            )}
+                                          {(quizResult.summary?.percentage ||
+                                            0) >= 50 &&
+                                            (quizResult.summary?.percentage ||
+                                              0) < 70 && (
+                                              <span className="flex items-center text-sm font-semibold text-green-700 dark:text-green-300">
+                                                👍 Khá
+                                              </span>
+                                            )}
+                                          {(quizResult.summary?.percentage ||
+                                            0) < 50 && (
+                                            <span className="flex items-center text-sm font-semibold text-orange-700 dark:text-orange-300">
+                                              📚 Cố gắng
+                                            </span>
+                                          )}
+                                        </div>
+                                      </motion.div>
 
-                                  {/* Performance Message */}
-                                  <div className="relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-r from-white/60 to-white/40 p-3 text-center shadow-lg backdrop-blur-sm transition-all duration-500 hover:shadow-xl sm:p-4 lg:p-5 dark:border-gray-700/50 dark:from-gray-800/60 dark:to-gray-900/40">
-                                    <div className="animate-gradient-shift absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10"></div>
-                                    <div className="relative">
-                                      <p className="mb-1 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-sm font-bold text-transparent sm:mb-2 sm:text-base lg:text-lg">
-                                        {getPerformanceMessage(
-                                          quizResult.summary?.percentage || 0,
-                                        )}
-                                      </p>
-                                      <p className="text-xs text-gray-600 italic dark:text-gray-400">
-                                        &ldquo;
-                                        {getPerformanceAdvice(
-                                          quizResult.summary?.percentage || 0,
-                                        )}
-                                        &rdquo;
-                                      </p>
+                                      {/* Statistics Grid */}
+                                      <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 0.7 }}
+                                        className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4"
+                                      >
+                                        {[
+                                          {
+                                            value:
+                                              quizResult.summary
+                                                ?.totalQuestions || 0,
+                                            label: "Tổng câu",
+                                            color: "blue",
+                                          },
+                                          {
+                                            value:
+                                              quizResult.summary
+                                                ?.correctAnswers || 0,
+                                            label: "Đúng ✓",
+                                            color: "green",
+                                          },
+                                          {
+                                            value:
+                                              quizResult.summary
+                                                ?.incorrectAnswers || 0,
+                                            label: "Sai ✗",
+                                            color: "red",
+                                          },
+                                          {
+                                            value: `${Math.floor((quizResult.summary?.timeSpent || 0) / 60)}:${String((quizResult.summary?.timeSpent || 0) % 60).padStart(2, "0")}`,
+                                            label: "Thời gian ⏱",
+                                            color: "purple",
+                                          },
+                                        ].map((stat, index) => (
+                                          <motion.div
+                                            key={index}
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{
+                                              delay: 0.8 + index * 0.1,
+                                            }}
+                                            whileHover={{ scale: 1.05 }}
+                                            className="group"
+                                          >
+                                            <div
+                                              className={`rounded-2xl bg-white/60 p-4 text-center ring-1 ring-white/20 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/80 dark:bg-gray-800/60 dark:group-hover:bg-gray-800/80`}
+                                            >
+                                              <p
+                                                className={`text-xl font-bold ${
+                                                  stat.color === "blue"
+                                                    ? "text-blue-700 dark:text-blue-300"
+                                                    : stat.color === "green"
+                                                      ? "text-green-700 dark:text-green-300"
+                                                      : stat.color === "red"
+                                                        ? "text-red-700 dark:text-red-300"
+                                                        : "text-purple-700 dark:text-purple-300"
+                                                }`}
+                                              >
+                                                {stat.value}
+                                              </p>
+                                              <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                {stat.label}
+                                              </p>
+                                            </div>
+                                          </motion.div>
+                                        ))}
+                                      </motion.div>
+
+                                      {/* Performance Message */}
+                                      <motion.div
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ delay: 1.2 }}
+                                        className="rounded-2xl bg-gradient-to-r from-white/60 to-white/40 p-6 text-center ring-1 ring-white/20 backdrop-blur-sm dark:from-gray-800/60 dark:to-gray-900/40"
+                                      >
+                                        <p className="mb-2 text-base font-semibold text-blue-900 dark:text-blue-100">
+                                          {getPerformanceMessage(
+                                            quizResult.summary?.percentage || 0,
+                                          )}
+                                        </p>
+                                        <p className="text-sm text-gray-600 italic dark:text-gray-400">
+                                          &ldquo;
+                                          {getPerformanceAdvice(
+                                            quizResult.summary?.percentage || 0,
+                                          )}
+                                          &rdquo;
+                                        </p>
+                                      </motion.div>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-                            )}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
 
                             {userInfo && (
                               <div className="mb-3 rounded-lg bg-gray-50 p-1.5 text-left sm:mb-6 sm:p-3 lg:mb-8 lg:p-4 dark:bg-gray-700">
@@ -970,7 +1042,7 @@ const QuizPage: NextPage = () => {
                                       <div className="absolute -inset-0.5 rounded-lg bg-yellow-400 opacity-75 blur transition duration-300 group-hover:opacity-100 group-hover:blur-sm"></div>
                                       <button
                                         onClick={handleViewCertificate}
-                                        className="relative w-full transform rounded-lg bg-yellow-500 px-3 py-2.5 font-bold text-white shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 hover:bg-yellow-400 hover:shadow-xl focus:ring-4 focus:ring-yellow-300/50 focus:outline-none active:scale-100 sm:px-4 sm:py-3 lg:px-8 lg:py-4"
+                                        className="relative w-full transform cursor-pointer rounded-lg bg-yellow-500 px-3 py-2.5 font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:bg-yellow-400 hover:shadow-xl focus:ring-4 focus:ring-yellow-300/50 focus:outline-none active:scale-100 sm:px-4 sm:py-3 lg:px-8 lg:py-4"
                                       >
                                         <span className="flex items-center justify-center space-x-1.5 sm:space-x-2 lg:space-x-3">
                                           <svg
@@ -1016,7 +1088,7 @@ const QuizPage: NextPage = () => {
                             <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
                               <button
                                 onClick={handleRestartQuiz}
-                                className="group relative w-full transform rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 cursor-pointer hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
+                                className="group relative w-full transform cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
                               >
                                 <span className="flex items-center justify-center space-x-2">
                                   <svg
@@ -1037,7 +1109,7 @@ const QuizPage: NextPage = () => {
                               </button>
                               <button
                                 onClick={handleGoHome}
-                                className="group relative w-full transform rounded-lg bg-gray-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 cursor-pointer hover:scale-105 hover:bg-gray-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
+                                className="group relative w-full transform cursor-pointer rounded-lg bg-gray-600 px-4 py-2.5 text-xs font-medium text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-gray-700 hover:shadow-lg active:scale-100 sm:w-auto sm:px-6 sm:py-3 sm:text-sm"
                               >
                                 <span className="flex items-center justify-center space-x-2">
                                   <svg
